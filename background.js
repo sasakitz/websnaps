@@ -65,18 +65,17 @@ chrome.runtime.onMessage.addListener((message, sender, sendResponse) => {
 
 async function startSelectionCapture(tab) {
   try {
-    await chrome.scripting.executeScript({
-      target: { tabId: tab.id },
-      files: ['content/selector.js']
-    });
+    // CSS を先に注入して、JS がオーバーレイを生成した時点でスタイルが適用済みの状態にする
     await chrome.scripting.insertCSS({
       target: { tabId: tab.id },
       files: ['content/selector.css']
     });
-    // Small delay to let the script initialize, then send START
-    setTimeout(() => {
-      chrome.tabs.sendMessage(tab.id, { type: 'START_SELECTION' }).catch(() => {});
-    }, 100);
+    await chrome.scripting.executeScript({
+      target: { tabId: tab.id },
+      files: ['content/selector.js']
+    });
+    // スクリプトが既に注入済みでガードにより auto-start がスキップされた場合の保険
+    chrome.tabs.sendMessage(tab.id, { type: 'START_SELECTION' }).catch(() => {});
   } catch (e) {
     console.error('Start selection error:', e);
   }
