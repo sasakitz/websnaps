@@ -451,28 +451,27 @@ function startTextInput(x, y) {
   input.contentEditable = 'true';
   input.className = 'text-input-overlay';
 
-  const fontStyle = [
-    state.fontItalic ? 'italic' : 'normal',
-    state.fontBold ? 'bold' : 'normal',
-    state.fontSize + 'px',
-    state.fontFamily
-  ].join(' ');
-
-  const cssX = x * state.zoom;
-  const cssY = y * state.zoom - state.fontSize * state.zoom;
+  // キャンバス座標 → canvasContainer 内の CSS 座標に変換（ズーム補正）
+  const cssX = canvas.offsetLeft + x * state.zoom;
+  const cssY = canvas.offsetTop + y * state.zoom;
+  const cssFontSize = state.fontSize * state.zoom;
 
   input.style.cssText = `
-    left: ${x}px;
-    top: ${y - state.fontSize}px;
-    font: ${state.fontBold ? 'bold' : 'normal'} ${state.fontItalic ? 'italic' : 'normal'} ${state.fontSize}px ${state.fontFamily};
+    left: ${cssX}px;
+    top: ${cssY}px;
+    font: ${state.fontBold ? 'bold' : 'normal'} ${state.fontItalic ? 'italic' : ''} ${cssFontSize}px/${cssFontSize * 1.3}px ${state.fontFamily};
     color: ${state.color};
-    line-height: 1.3;
     min-width: 4px;
-    max-width: ${canvas.width - x}px;
+    max-width: ${(canvas.width - x) * state.zoom}px;
   `;
 
+  // キャンバスへのイベントバブルアップを阻止（これがないと mousedown が
+  // canvasの onMouseDown に届き activeTextInput を検出して即 commit してしまう）
+  input.addEventListener('mousedown', (e) => e.stopPropagation());
+  input.addEventListener('pointerdown', (e) => e.stopPropagation());
+
   canvasContainer.appendChild(input);
-  input.focus();
+  setTimeout(() => input.focus(), 0);
   state.activeTextInput = { input, x, y };
 
   const commit = () => {
