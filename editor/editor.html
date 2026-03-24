@@ -1,0 +1,330 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>WebSnaps Editor</title>
+  <link rel="stylesheet" href="editor.css">
+</head>
+<body>
+  <div id="app">
+    <!-- Header -->
+    <header class="header">
+      <div class="header-left">
+        <div class="logo">
+          <svg width="18" height="18" viewBox="0 0 24 24" fill="none">
+            <path d="M23 19a2 2 0 0 1-2 2H3a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h4l2-3h6l2 3h4a2 2 0 0 1 2 2z" stroke="#a5b4fc" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+            <circle cx="12" cy="13" r="4" stroke="#a5b4fc" stroke-width="2"/>
+          </svg>
+          <span>WebSnaps</span>
+        </div>
+        <div class="header-divider"></div>
+        <div class="history-controls">
+          <button id="btn-undo" class="icon-btn" title="元に戻す (Ctrl+Z)" disabled>
+            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+              <polyline points="9 14 4 9 9 4"/>
+              <path d="M20 20v-7a4 4 0 0 0-4-4H4"/>
+            </svg>
+          </button>
+          <button id="btn-redo" class="icon-btn" title="やり直す (Ctrl+Y)" disabled>
+            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+              <polyline points="15 14 20 9 15 4"/>
+              <path d="M4 20v-7a4 4 0 0 1 4-4h12"/>
+            </svg>
+          </button>
+        </div>
+        <div class="header-divider"></div>
+        <div class="zoom-controls">
+          <button id="btn-zoom-out" class="icon-btn" title="縮小">
+            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><line x1="5" y1="12" x2="19" y2="12"/></svg>
+          </button>
+          <span id="zoom-label" class="zoom-label">100%</span>
+          <button id="btn-zoom-in" class="icon-btn" title="拡大">
+            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>
+          </button>
+          <button id="btn-zoom-fit" class="icon-btn" title="全体を表示">
+            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+              <path d="M8 3H5a2 2 0 0 0-2 2v3m18 0V5a2 2 0 0 0-2-2h-3m0 18h3a2 2 0 0 0 2-2v-3M3 16v3a2 2 0 0 0 2 2h3"/>
+            </svg>
+          </button>
+        </div>
+      </div>
+
+      <div class="header-right">
+        <div class="format-group">
+          <button class="format-btn active" data-format="png">PNG</button>
+          <button class="format-btn" data-format="jpg">JPG</button>
+        </div>
+        <button id="btn-copy" class="action-btn secondary">
+          <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+            <rect x="9" y="9" width="13" height="13" rx="2" ry="2"/>
+            <path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"/>
+          </svg>
+          コピー
+        </button>
+        <button id="btn-save" class="action-btn primary">
+          <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+            <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/>
+            <polyline points="7 10 12 15 17 10"/>
+            <line x1="12" y1="15" x2="12" y2="3"/>
+          </svg>
+          保存
+        </button>
+      </div>
+    </header>
+
+    <!-- Main Layout -->
+    <div class="main">
+      <!-- Left Toolbar -->
+      <aside class="toolbar">
+        <div class="tool-group">
+          <button class="tool-btn active" data-tool="select" title="選択 (V)">
+            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+              <path d="M5 3l14 9-7 1-3 7L5 3z"/>
+            </svg>
+          </button>
+        </div>
+        <div class="tool-separator"></div>
+        <div class="tool-group">
+          <button class="tool-btn" data-tool="pencil" title="ペン (P)">
+            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+              <path d="M12 19l7-7 3 3-7 7-3-3z"/>
+              <path d="M18 13l-1.5-7.5L2 2l3.5 14.5L13 18l5-5z"/>
+              <path d="M2 2l7.586 7.586"/>
+              <circle cx="11" cy="11" r="2"/>
+            </svg>
+          </button>
+          <button class="tool-btn" data-tool="line" title="直線 (L)">
+            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+              <line x1="5" y1="19" x2="19" y2="5"/>
+            </svg>
+          </button>
+          <button class="tool-btn" data-tool="arrow" title="矢印 (A)">
+            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+              <line x1="5" y1="19" x2="19" y2="5"/>
+              <polyline points="12 5 19 5 19 12"/>
+            </svg>
+          </button>
+        </div>
+        <div class="tool-separator"></div>
+        <div class="tool-group">
+          <button class="tool-btn" data-tool="rect" title="四角形 (R)">
+            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+              <rect x="3" y="3" width="18" height="18" rx="2"/>
+            </svg>
+          </button>
+          <button class="tool-btn" data-tool="ellipse" title="楕円 (E)">
+            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+              <ellipse cx="12" cy="12" rx="10" ry="6"/>
+            </svg>
+          </button>
+        </div>
+        <div class="tool-separator"></div>
+        <div class="tool-group">
+          <button class="tool-btn" data-tool="text" title="テキスト (T)">
+            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+              <polyline points="4 7 4 4 20 4 20 7"/>
+              <line x1="9" y1="20" x2="15" y2="20"/>
+              <line x1="12" y1="4" x2="12" y2="20"/>
+            </svg>
+          </button>
+        </div>
+        <div class="tool-separator"></div>
+        <div class="tool-group">
+          <button class="tool-btn" data-tool="blur" title="ぼかし (B)">
+            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+              <circle cx="12" cy="12" r="3"/>
+              <path d="M12 2v2M12 20v2M2 12h2M20 12h2M4.93 4.93l1.41 1.41M17.66 17.66l1.41 1.41M4.93 19.07l1.41-1.41M17.66 6.34l1.41-1.41"/>
+            </svg>
+          </button>
+          <button class="tool-btn" data-tool="mosaic" title="モザイク (M)">
+            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+              <rect x="3" y="3" width="4" height="4"/><rect x="10" y="3" width="4" height="4"/>
+              <rect x="17" y="3" width="4" height="4"/><rect x="3" y="10" width="4" height="4"/>
+              <rect x="10" y="10" width="4" height="4"/><rect x="17" y="10" width="4" height="4"/>
+              <rect x="3" y="17" width="4" height="4"/><rect x="10" y="17" width="4" height="4"/>
+              <rect x="17" y="17" width="4" height="4"/>
+            </svg>
+          </button>
+        </div>
+        <div class="tool-separator"></div>
+        <div class="tool-group">
+          <button class="tool-btn" data-tool="eraser" title="消しゴム (X)">
+            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+              <path d="M20 20H7L3 16l11-11 6 6-4 4"/>
+              <path d="M6 11l6 6"/>
+            </svg>
+          </button>
+        </div>
+        <div class="tool-separator"></div>
+        <div class="tool-group">
+          <button class="tool-btn" data-tool="crop" title="切り抜き (C)">
+            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+              <polyline points="6 2 6 6 2 6"/>
+              <polyline points="18 22 18 18 22 18"/>
+              <path d="M6 18H4a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h12a2 2 0 0 1 2 2v2"/>
+              <rect x="12" y="12" width="10" height="10" rx="1" stroke-dasharray="2 1.5"/>
+            </svg>
+          </button>
+        </div>
+      </aside>
+
+      <!-- Canvas Workspace -->
+      <div class="workspace" id="workspace">
+        <div class="canvas-container" id="canvas-container">
+          <canvas id="canvas"></canvas>
+          <canvas id="crop-overlay"></canvas>
+        </div>
+        <div id="loading" class="loading">
+          <div class="loading-spinner"></div>
+          <div class="loading-text">読み込み中...</div>
+        </div>
+        <!-- Crop confirm bar -->
+        <div id="crop-bar" class="crop-bar hidden">
+          <div class="crop-bar-info">
+            <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+              <polyline points="6 2 6 6 2 6"/><polyline points="18 22 18 18 22 18"/>
+              <path d="M6 18H4a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h12a2 2 0 0 1 2 2v2"/>
+              <rect x="12" y="12" width="10" height="10" rx="1"/>
+            </svg>
+            <span id="crop-size-label">ドラッグして範囲を選択</span>
+          </div>
+          <div class="crop-bar-actions">
+            <button id="btn-crop-cancel" class="crop-btn-cancel">
+              <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                <line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/>
+              </svg>
+              キャンセル
+            </button>
+            <button id="btn-crop-apply" class="crop-btn-apply" disabled>
+              <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                <polyline points="20 6 9 17 4 12"/>
+              </svg>
+              切り抜きを適用
+            </button>
+          </div>
+        </div>
+      </div>
+
+      <!-- Right Options Panel -->
+      <aside class="options-panel" id="options-panel">
+        <!-- Color -->
+        <div class="option-section" id="opt-color">
+          <div class="option-label">カラー</div>
+          <div class="color-row">
+            <div class="color-preview" id="color-preview"></div>
+            <input type="color" id="color-input" value="#ff3b3b">
+          </div>
+          <div class="color-presets" id="color-presets">
+            <button class="color-preset" style="background:#ff3b3b" data-color="#ff3b3b"></button>
+            <button class="color-preset" style="background:#ff9500" data-color="#ff9500"></button>
+            <button class="color-preset" style="background:#ffcc00" data-color="#ffcc00"></button>
+            <button class="color-preset" style="background:#34c759" data-color="#34c759"></button>
+            <button class="color-preset" style="background:#007aff" data-color="#007aff"></button>
+            <button class="color-preset" style="background:#af52de" data-color="#af52de"></button>
+            <button class="color-preset active" style="background:#ff2d55" data-color="#ff2d55"></button>
+            <button class="color-preset" style="background:#ffffff" data-color="#ffffff" style="border: 1px solid rgba(255,255,255,0.2)"></button>
+            <button class="color-preset" style="background:#000000" data-color="#000000"></button>
+          </div>
+        </div>
+
+        <!-- Line Width -->
+        <div class="option-section" id="opt-width">
+          <div class="option-label">線の太さ</div>
+          <div class="slider-row">
+            <input type="range" id="width-slider" min="1" max="30" value="3" class="slider">
+            <span id="width-value" class="slider-value">3</span>
+          </div>
+          <div class="width-presets">
+            <button class="width-preset" data-width="2"><div style="height:2px;background:currentColor;border-radius:1px"></div></button>
+            <button class="width-preset" data-width="4"><div style="height:4px;background:currentColor;border-radius:2px"></div></button>
+            <button class="width-preset" data-width="8"><div style="height:8px;background:currentColor;border-radius:4px"></div></button>
+            <button class="width-preset" data-width="16"><div style="height:16px;background:currentColor;border-radius:8px"></div></button>
+          </div>
+        </div>
+
+        <!-- Text Options (shown for text tool) -->
+        <div class="option-section hidden" id="opt-text">
+          <div class="option-label">フォントサイズ</div>
+          <div class="slider-row">
+            <input type="range" id="fontsize-slider" min="10" max="72" value="20" class="slider">
+            <span id="fontsize-value" class="slider-value">20</span>
+          </div>
+          <div class="option-label" style="margin-top: 10px;">フォント</div>
+          <select id="font-select" class="select">
+            <option value="Arial, sans-serif">Arial</option>
+            <option value="'Helvetica Neue', sans-serif">Helvetica</option>
+            <option value="Georgia, serif">Georgia</option>
+            <option value="'Courier New', monospace">Courier</option>
+            <option value="Impact, sans-serif">Impact</option>
+          </select>
+          <div class="option-label" style="margin-top: 10px;">スタイル</div>
+          <div class="btn-group">
+            <button class="style-btn" id="btn-bold" data-style="bold" title="太字">B</button>
+            <button class="style-btn italic-btn" id="btn-italic" data-style="italic" title="斜体">I</button>
+          </div>
+        </div>
+
+        <!-- Blur/Mosaic Options -->
+        <div class="option-section hidden" id="opt-effect">
+          <div class="option-label">強度</div>
+          <div class="slider-row">
+            <input type="range" id="effect-slider" min="2" max="30" value="10" class="slider">
+            <span id="effect-value" class="slider-value">10</span>
+          </div>
+        </div>
+
+        <!-- Shape Fill Option -->
+        <div class="option-section hidden" id="opt-shape">
+          <div class="option-label">塗りつぶし</div>
+          <div class="toggle-row">
+            <label class="toggle-switch">
+              <input type="checkbox" id="fill-toggle">
+              <span class="toggle-track"></span>
+            </label>
+            <span id="fill-label">オフ</span>
+          </div>
+          <div id="fill-color-row" class="option-section hidden" style="padding: 0; border: none;">
+            <div class="option-label" style="margin-top: 8px;">塗り色</div>
+            <div class="color-row">
+              <div class="color-preview" id="fill-color-preview"></div>
+              <input type="color" id="fill-color-input" value="#ff3b3b">
+            </div>
+          </div>
+        </div>
+
+        <!-- Opacity -->
+        <div class="option-section" id="opt-opacity">
+          <div class="option-label">不透明度</div>
+          <div class="slider-row">
+            <input type="range" id="opacity-slider" min="10" max="100" value="100" class="slider">
+            <span id="opacity-value" class="slider-value">100%</span>
+          </div>
+        </div>
+
+        <div class="option-section" id="opt-eraser" style="display:none">
+          <div class="option-label">消しゴムサイズ</div>
+          <div class="slider-row">
+            <input type="range" id="eraser-slider" min="5" max="80" value="20" class="slider">
+            <span id="eraser-value" class="slider-value">20</span>
+          </div>
+        </div>
+      </aside>
+    </div>
+
+    <!-- Status Bar -->
+    <div class="statusbar">
+      <span id="status-size">--</span>
+      <span class="status-sep">|</span>
+      <span id="status-pos">--</span>
+      <span class="status-sep">|</span>
+      <span id="status-tool">選択</span>
+    </div>
+  </div>
+
+  <!-- Toast notification -->
+  <div id="toast" class="toast"></div>
+
+  <script src="editor.js"></script>
+</body>
+</html>
