@@ -13,7 +13,7 @@ def make_chunk(chunk_type, data):
 def create_png(width, height, pixel_func):
     raw = bytearray()
     for y in range(height):
-        raw.append(0)  # filter: None
+        raw.append(0)
         for x in range(width):
             r, g, b, a = pixel_func(x, y, width, height)
             raw.extend([
@@ -31,57 +31,94 @@ def create_png(width, height, pixel_func):
 def lerp(a, b, t):
     return a + (b - a) * t
 
+def rrect(nx, ny, x0, y0, x1, y1, cr):
+    """True if (nx, ny) is inside a rounded rectangle."""
+    if not (x0 <= nx <= x1 and y0 <= ny <= y1):
+        return False
+    in_cx = nx < x0 + cr or nx > x1 - cr
+    in_cy = ny < y0 + cr or ny > y1 - cr
+    if in_cx and in_cy:
+        ncx = x0 + cr if nx < x0 + cr else x1 - cr
+        ncy = y0 + cr if ny < y0 + cr else y1 - cr
+        return (nx - ncx) ** 2 + (ny - ncy) ** 2 <= cr ** 2
+    return True
+
 def camera_pixel(x, y, w, h):
-    nx = x / w
-    ny = y / h
+    nx, ny = x / w, y / h
 
-    # Background gradient: indigo #6366f1 to #4f46e5
-    bg_r = int(lerp(99, 79, ny))
-    bg_g = int(lerp(102, 70, ny))
-    bg_b = int(lerp(241, 229, ny))
+    # --- 円形背景（円の外は透明）---
+    # 全ての要素はこの円（半径0.46）の内側に収まるよう設計
+    bg_d = math.sqrt((nx - 0.5) ** 2 + (ny - 0.5) ** 2)
+    if bg_d > 0.48:
+        return (0, 0, 0, 0)
 
-    # Rounded background
-    cx_bg, cy_bg = 0.5, 0.5
-    r_bg = 0.48
-    if (nx - cx_bg)**2 + (ny - cy_bg)**2 > r_bg**2:
-        return (0, 0, 0, 0)  # transparent outside circle
+    # インディゴグラデーション背景
+    t = ny
+    br = int(lerp(108, 72, t))
+    bg = int(lerp(110, 65, t))
+    bb = int(lerp(243, 218, t))
 
-    # Camera body parameters
-    body_l, body_r = 0.1, 0.9
-    body_t, body_b = 0.3, 0.88
+    # --- カメラボディ（丸角矩形）---
+    # 全コーナーが円内に収まる範囲: 0.18〜0.82 × 0.29〜0.80
+    # 底隅(0.18, 0.80): 中心からの距離 = sqrt(0.32²+0.30²) ≈ 0.439 < 0.46 ✓
+    body = rrect(nx, ny, 0.18, 0.29, 0.82, 0.80, 0.09)
 
-    # Viewfinder bump (top center)
-    bump_l, bump_r = 0.35, 0.65
-    bump_t, bump_b = 0.15, 0.32
+    # --- ファインダーバンプ（上部中央）---
+    # バンプ隅(0.37, 0.17): 距離 = sqrt(0.13²+0.33²) ≈ 0.355 < 0.46 ✓
+    bump = rrect(nx, ny, 0.37, 0.17, 0.63, 0.30, 0.05)
 
-    in_body = (body_l < nx < body_r and body_t < ny < body_b)
-    in_bump = (bump_l < nx < bump_r and bump_t < ny < bump_b)
+    if body or bump:
+        # --- レンズ ---
+        lx, ly = 0.5, 0.555
+        ld = math.sqrt((nx - lx) ** 2 + (ny - ly) ** 2)
 
-    if in_body or in_bump:
-        # Lens circle
-        lx, ly, lr = 0.5, 0.595, 0.22
-        dist_to_lens = math.sqrt((nx - lx)**2 + (ny - ly)**2)
+        # レンズ外リム（白）
+        if 0.175 <= ld < 0.215:
+            aa = 1.0 - max(0.0, (ld - 0.195) / 0.02)
+            return (255, 255, 255, int(240 * aa + 180 * (1 - aa)))
 
-        # Outer ring of lens
-        if lr - 0.04 < dist_to_lens < lr:
-            return (255, 255, 255, 220)
-        # Inner lens area
-        elif dist_to_lens < lr - 0.04:
-            # Subtle blue-tinted lens with highlight
-            hl_dist = math.sqrt((nx - (lx - 0.06))**2 + (ny - (ly - 0.06))**2)
-            if hl_dist < 0.06:
-                alpha = int(200 * (1 - hl_dist / 0.06))
-                return (200, 210, 255, alpha + 55)
-            return (120, 140, 230, 200)
-        # Camera body
-        else:
-            # Slight shading
-            shade = int(30 * ny)
-            return (255 - shade, 255 - shade, 255 - shade, 230)
-    else:
-        return (bg_r, bg_g, bg_b, 255)
+        # レンズ内リム（薄いリング）
+        if 0.155 <= ld < 0.175:
+            return (180, 190, 255, 255)
 
-os.makedirs(os.path.dirname(os.path.abspath(__file__)), exist_ok=True)
+        # レンズ内部（濃い青）
+        if ld < 0.155:
+            # 光沢ハイライト（左上）
+            hl = math.sqrt((nx - 0.43) ** 2 + (ny - 0.49) ** 2)
+            if hl < 0.04:
+                intensity = 1.0 - hl / 0.04
+                return (
+                    int(lerp(60, 210, intensity)),
+                    int(lerp(80, 225, intensity)),
+                    int(lerp(200, 255, intensity)),
+                    255
+                )
+            # 小さなハイライト（右下）
+            hl2 = math.sqrt((nx - 0.55) ** 2 + (ny - 0.60) ** 2)
+            if hl2 < 0.018:
+                intensity = 1.0 - hl2 / 0.018
+                return (
+                    int(lerp(60, 110, intensity)),
+                    int(lerp(80, 130, intensity)),
+                    int(lerp(200, 240, intensity)),
+                    255
+                )
+            return (52, 72, 195, 255)
+
+        # --- カメラボディ本体（白）---
+        # フラッシュインジケーター（左上の小円）
+        fl = math.sqrt((nx - 0.265) ** 2 + (ny - 0.365) ** 2)
+        if fl < 0.038:
+            return (200, 215, 255, 255)
+
+        # ボディの微妙なシェーディング（立体感）
+        shade = int(12 * (ny - 0.29))
+        v = max(235, 255 - shade)
+        return (v, v, v, 245)
+
+    return (br, bg, bb, 255)
+
+
 script_dir = os.path.dirname(os.path.abspath(__file__))
 
 for size in [16, 48, 128]:
