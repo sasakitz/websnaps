@@ -1,7 +1,7 @@
 {
   "manifest_version": 3,
   "name": "WebSnaps",
-  "version": "1.0.2",
+  "version": "1.0.3",
   "description": "スクリーンショットツール - 範囲選択・編集・保存機能付き",
   "permissions": [
     "activeTab",

@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-"""Generate WebSnaps icon PNG files."""
+"""Generate WebSnaps icon PNG files - Material Design flat style."""
 import struct
 import zlib
 import os
@@ -28,9 +28,6 @@ def create_png(width, height, pixel_func):
     iend = make_chunk(b'IEND', b'')
     return sig + ihdr + idat + iend
 
-def lerp(a, b, t):
-    return a + (b - a) * t
-
 def rrect(nx, ny, x0, y0, x1, y1, cr):
     """True if (nx, ny) is inside a rounded rectangle."""
     if not (x0 <= nx <= x1 and y0 <= ny <= y1):
@@ -46,77 +43,45 @@ def rrect(nx, ny, x0, y0, x1, y1, cr):
 def camera_pixel(x, y, w, h):
     nx, ny = x / w, y / h
 
-    # --- 円形背景（円の外は透明）---
-    # 全ての要素はこの円（半径0.46）の内側に収まるよう設計
-    bg_d = math.sqrt((nx - 0.5) ** 2 + (ny - 0.5) ** 2)
-    if bg_d > 0.48:
+    # Material Design カラー（単色・フラット）
+    INDIGO = (99, 102, 241, 255)   # #6366f1
+    WHITE  = (255, 255, 255, 255)
+
+    # ── 背景: 丸角正方形（角半径18%）────────────────────────────
+    if not rrect(nx, ny, 0.0, 0.0, 1.0, 1.0, 0.18):
         return (0, 0, 0, 0)
 
-    # インディゴグラデーション背景
-    t = ny
-    br = int(lerp(108, 72, t))
-    bg = int(lerp(110, 65, t))
-    bb = int(lerp(243, 218, t))
+    # ── カメラボディ（丸角矩形・白）──────────────────────────────
+    # 四隅が背景の丸角より内側に収まる範囲
+    body = rrect(nx, ny, 0.16, 0.31, 0.84, 0.80, 0.09)
 
-    # --- カメラボディ（丸角矩形）---
-    # 全コーナーが円内に収まる範囲: 0.18〜0.82 × 0.29〜0.80
-    # 底隅(0.18, 0.80): 中心からの距離 = sqrt(0.32²+0.30²) ≈ 0.439 < 0.46 ✓
-    body = rrect(nx, ny, 0.18, 0.29, 0.82, 0.80, 0.09)
-
-    # --- ファインダーバンプ（上部中央）---
-    # バンプ隅(0.37, 0.17): 距離 = sqrt(0.13²+0.33²) ≈ 0.355 < 0.46 ✓
-    bump = rrect(nx, ny, 0.37, 0.17, 0.63, 0.30, 0.05)
+    # ── ファインダーバンプ（上部中央・白）────────────────────────
+    bump = rrect(nx, ny, 0.37, 0.19, 0.63, 0.32, 0.06)
 
     if body or bump:
-        # --- レンズ ---
         lx, ly = 0.5, 0.555
         ld = math.sqrt((nx - lx) ** 2 + (ny - ly) ** 2)
 
-        # レンズ外リム（白）
-        if 0.175 <= ld < 0.215:
-            aa = 1.0 - max(0.0, (ld - 0.195) / 0.02)
-            return (255, 255, 255, int(240 * aa + 180 * (1 - aa)))
+        # レンズ中心ドット（白・背景色で抜いたリングをさらに白で戻す）
+        if ld < 0.065:
+            return WHITE
 
-        # レンズ内リム（薄いリング）
-        if 0.155 <= ld < 0.175:
-            return (180, 190, 255, 255)
+        # レンズ開口部（インディゴで抜く → リング状に見せる）
+        if ld < 0.175:
+            return INDIGO
 
-        # レンズ内部（濃い青）
-        if ld < 0.155:
-            # 光沢ハイライト（左上）
-            hl = math.sqrt((nx - 0.43) ** 2 + (ny - 0.49) ** 2)
-            if hl < 0.04:
-                intensity = 1.0 - hl / 0.04
-                return (
-                    int(lerp(60, 210, intensity)),
-                    int(lerp(80, 225, intensity)),
-                    int(lerp(200, 255, intensity)),
-                    255
-                )
-            # 小さなハイライト（右下）
-            hl2 = math.sqrt((nx - 0.55) ** 2 + (ny - 0.60) ** 2)
-            if hl2 < 0.018:
-                intensity = 1.0 - hl2 / 0.018
-                return (
-                    int(lerp(60, 110, intensity)),
-                    int(lerp(80, 130, intensity)),
-                    int(lerp(200, 240, intensity)),
-                    255
-                )
-            return (52, 72, 195, 255)
+        # フラッシュインジケーター（左上の小さい丸・16px では省略）
+        if w >= 32:
+            fx, fy = 0.265, 0.385
+            fd = math.sqrt((nx - fx) ** 2 + (ny - fy) ** 2)
+            if fd < 0.055:
+                return INDIGO
 
-        # --- カメラボディ本体（白）---
-        # フラッシュインジケーター（左上の小円）
-        fl = math.sqrt((nx - 0.265) ** 2 + (ny - 0.365) ** 2)
-        if fl < 0.038:
-            return (200, 215, 255, 255)
+        # ボディ本体
+        return WHITE
 
-        # ボディの微妙なシェーディング（立体感）
-        shade = int(12 * (ny - 0.29))
-        v = max(235, 255 - shade)
-        return (v, v, v, 245)
-
-    return (br, bg, bb, 255)
+    # 背景
+    return INDIGO
 
 
 script_dir = os.path.dirname(os.path.abspath(__file__))
@@ -128,4 +93,4 @@ for size in [16, 48, 128]:
         f.write(png)
     print(f'Created {path} ({len(png)} bytes)')
 
-print('Icons generated successfully!')
+print('Done.')
