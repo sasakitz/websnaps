@@ -229,8 +229,14 @@
       height: currentRect.h,
       devicePixelRatio: window.devicePixelRatio || 1
     };
-    cleanup();
-    chrome.runtime.sendMessage({ type: 'SELECTION_COMPLETE', rect: captureRect });
+    // オーバーレイを先に非表示にし、ブラウザが再描画する2フレーム後にメッセージ送信
+    if (overlay) overlay.style.visibility = 'hidden';
+    requestAnimationFrame(() => {
+      requestAnimationFrame(() => {
+        cleanup();
+        chrome.runtime.sendMessage({ type: 'SELECTION_COMPLETE', rect: captureRect });
+      });
+    });
   }
 
   // ── Mouse handlers ───────────────────────────────────────────────────────────

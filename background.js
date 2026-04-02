@@ -42,6 +42,9 @@ chrome.runtime.onMessage.addListener((message, sender, sendResponse) => {
     (async () => {
       const tab = sender.tab;
       try {
+        // content script 側で visibility:hidden → rAF×2 済みだが、
+        // IPC レイテンシを考慮してさらに1フレーム分待つ
+        await sleep(32);
         const dataUrl = await chrome.tabs.captureVisibleTab(tab.windowId, { format: 'png' });
         await openEditor({
           type: 'selection',
