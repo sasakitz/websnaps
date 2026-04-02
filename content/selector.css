@@ -17,6 +17,8 @@
   transition: clip-path 0.05s !important;
 }
 
+/* ── Toolbar ──────────────────────────────────────────────────────────────── */
+
 #__websnaps-overlay .__ws-toolbar {
   position: fixed !important;
   top: 16px !important;
@@ -99,49 +101,185 @@
 #__websnaps-overlay .__ws-hint {
   font-size: 12px !important;
   color: rgba(255, 255, 255, 0.4) !important;
+  transition: color 0.15s !important;
 }
+
+/* ── Selection box ────────────────────────────────────────────────────────── */
 
 #__websnaps-overlay .__ws-selection {
   position: fixed !important;
   display: none !important;
   border: 2px solid #6366f1 !important;
   box-shadow:
-    0 0 0 2000px rgba(0, 0, 0, 0),
-    0 0 0 1px rgba(99, 102, 241, 0.5),
-    inset 0 0 0 1px rgba(255, 255, 255, 0.15) !important;
+    0 0 0 1px rgba(99, 102, 241, 0.4),
+    inset 0 0 0 1px rgba(255, 255, 255, 0.1) !important;
   pointer-events: none !important;
-  background: rgba(99, 102, 241, 0.08) !important;
-  transition: left 0.06s ease, top 0.06s ease, width 0.06s ease, height 0.06s ease !important;
+  background: rgba(99, 102, 241, 0.06) !important;
 }
 
-/* 要素モード: ホバー中の要素をより明確にハイライト */
+/* 要素モードのハイライト色 */
 #__websnaps-overlay.__ws-element-mode .__ws-selection {
   border-color: #22d3ee !important;
   box-shadow:
     0 0 0 1px rgba(34, 211, 238, 0.4),
-    0 0 16px 2px rgba(34, 211, 238, 0.25),
+    0 0 16px 2px rgba(34, 211, 238, 0.2),
     inset 0 0 0 1px rgba(255, 255, 255, 0.1) !important;
-  background: rgba(34, 211, 238, 0.06) !important;
+  background: rgba(34, 211, 238, 0.05) !important;
 }
 
-/* Corner handles */
-#__websnaps-overlay .__ws-selection::before,
-#__websnaps-overlay .__ws-selection::after {
-  content: '' !important;
+/* 確定待ち状態：pointer-events を有効化 */
+#__websnaps-overlay .__ws-selection.__ws-has-selection {
+  pointer-events: all !important;
+}
+
+/* ── Resize handles ───────────────────────────────────────────────────────── */
+
+#__websnaps-overlay .__ws-handle {
   position: absolute !important;
-  width: 8px !important;
-  height: 8px !important;
-  background: #6366f1 !important;
+  width: 9px !important;
+  height: 9px !important;
+  background: #fff !important;
+  border: 2px solid #6366f1 !important;
   border-radius: 2px !important;
+  box-shadow: 0 1px 4px rgba(0,0,0,0.4) !important;
+  z-index: 3 !important;
+  display: none !important;
+  box-sizing: border-box !important;
 }
-#__websnaps-overlay .__ws-selection::before {
-  top: -4px !important;
-  left: -4px !important;
+
+/* ハンドルは確定待ち状態のみ表示 */
+#__websnaps-overlay .__ws-selection.__ws-has-selection .__ws-handle {
+  display: block !important;
 }
-#__websnaps-overlay .__ws-selection::after {
-  bottom: -4px !important;
-  right: -4px !important;
+
+/* 各ハンドルの位置とカーソル */
+#__websnaps-overlay .__ws-handle-nw { top: -5px  !important; left: -5px  !important; cursor: nw-resize !important; }
+#__websnaps-overlay .__ws-handle-n  { top: -5px  !important; left: calc(50% - 4px) !important; cursor: n-resize  !important; }
+#__websnaps-overlay .__ws-handle-ne { top: -5px  !important; right: -5px !important; cursor: ne-resize !important; }
+#__websnaps-overlay .__ws-handle-e  { top: calc(50% - 4px) !important; right: -5px !important; cursor: e-resize  !important; }
+#__websnaps-overlay .__ws-handle-se { bottom: -5px !important; right: -5px !important; cursor: se-resize !important; }
+#__websnaps-overlay .__ws-handle-s  { bottom: -5px !important; left: calc(50% - 4px) !important; cursor: s-resize  !important; }
+#__websnaps-overlay .__ws-handle-sw { bottom: -5px !important; left: -5px !important; cursor: sw-resize !important; }
+#__websnaps-overlay .__ws-handle-w  { top: calc(50% - 4px) !important; left: -5px !important; cursor: w-resize  !important; }
+
+/* ── Move area ────────────────────────────────────────────────────────────── */
+
+#__websnaps-overlay .__ws-move-area {
+  position: absolute !important;
+  inset: 0 !important;
+  cursor: default !important;
+  z-index: 1 !important;
+  display: none !important;
 }
+
+#__websnaps-overlay .__ws-selection.__ws-has-selection .__ws-move-area {
+  display: block !important;
+  cursor: move !important;
+}
+
+/* ── Confirm panel ────────────────────────────────────────────────────────── */
+
+#__websnaps-overlay .__ws-confirm-panel {
+  position: fixed !important;
+  display: none !important;
+  align-items: center !important;
+  gap: 10px !important;
+  background: rgba(12, 12, 12, 0.97) !important;
+  backdrop-filter: blur(16px) !important;
+  -webkit-backdrop-filter: blur(16px) !important;
+  border: 1px solid rgba(255, 255, 255, 0.1) !important;
+  border-radius: 12px !important;
+  padding: 10px 14px !important;
+  box-shadow: 0 8px 32px rgba(0, 0, 0, 0.6) !important;
+  pointer-events: all !important;
+  z-index: 2147483647 !important;
+  white-space: nowrap !important;
+}
+
+#__websnaps-overlay .__ws-size-row {
+  display: flex !important;
+  align-items: center !important;
+  gap: 6px !important;
+}
+
+#__websnaps-overlay .__ws-size-field {
+  display: flex !important;
+  align-items: center !important;
+  gap: 5px !important;
+}
+
+#__websnaps-overlay .__ws-size-label {
+  font-size: 11px !important;
+  font-weight: 600 !important;
+  color: rgba(255, 255, 255, 0.4) !important;
+  font-family: inherit !important;
+}
+
+#__websnaps-overlay .__ws-size-input {
+  width: 62px !important;
+  padding: 4px 8px !important;
+  background: rgba(255, 255, 255, 0.07) !important;
+  border: 1px solid rgba(255, 255, 255, 0.12) !important;
+  border-radius: 6px !important;
+  color: #f0f0f0 !important;
+  font-size: 12px !important;
+  font-family: 'SF Mono', 'Fira Code', monospace !important;
+  font-weight: 500 !important;
+  text-align: right !important;
+  outline: none !important;
+  transition: border-color 0.15s !important;
+  -moz-appearance: textfield !important;
+  box-sizing: border-box !important;
+}
+
+#__websnaps-overlay .__ws-size-input::-webkit-inner-spin-button,
+#__websnaps-overlay .__ws-size-input::-webkit-outer-spin-button {
+  opacity: 1 !important;
+}
+
+#__websnaps-overlay .__ws-size-input:focus {
+  border-color: rgba(99, 102, 241, 0.6) !important;
+  background: rgba(99, 102, 241, 0.1) !important;
+}
+
+#__websnaps-overlay .__ws-size-sep {
+  font-size: 13px !important;
+  color: rgba(255, 255, 255, 0.3) !important;
+  font-family: inherit !important;
+}
+
+#__websnaps-overlay .__ws-size-unit {
+  font-size: 11px !important;
+  color: rgba(255, 255, 255, 0.3) !important;
+  font-family: inherit !important;
+}
+
+#__websnaps-overlay .__ws-capture-btn {
+  display: flex !important;
+  align-items: center !important;
+  gap: 6px !important;
+  padding: 6px 14px !important;
+  background: #6366f1 !important;
+  border: none !important;
+  border-radius: 8px !important;
+  color: #fff !important;
+  font-size: 12px !important;
+  font-weight: 600 !important;
+  cursor: pointer !important;
+  transition: background 0.15s, transform 0.1s !important;
+  font-family: inherit !important;
+  white-space: nowrap !important;
+}
+
+#__websnaps-overlay .__ws-capture-btn:hover {
+  background: #4f52d9 !important;
+}
+
+#__websnaps-overlay .__ws-capture-btn:active {
+  transform: scale(0.97) !important;
+}
+
+/* ── Labels / Rulers ─────────────────────────────────────────────────────── */
 
 #__websnaps-overlay .__ws-dim-label {
   position: fixed !important;
@@ -156,7 +294,6 @@
   pointer-events: none !important;
   white-space: nowrap !important;
   box-shadow: 0 2px 8px rgba(99, 102, 241, 0.4) !important;
-  transition: background 0.15s !important;
 }
 
 #__websnaps-overlay.__ws-element-mode .__ws-dim-label {
@@ -172,15 +309,11 @@
 }
 
 #__websnaps-overlay .__ws-ruler-h {
-  left: 0 !important;
-  right: 0 !important;
-  height: 1px !important;
-  top: 0 !important;
+  left: 0 !important; right: 0 !important;
+  height: 1px !important; top: 0 !important;
 }
 
 #__websnaps-overlay .__ws-ruler-v {
-  top: 0 !important;
-  bottom: 0 !important;
-  width: 1px !important;
-  left: 0 !important;
+  top: 0 !important; bottom: 0 !important;
+  width: 1px !important; left: 0 !important;
 }
