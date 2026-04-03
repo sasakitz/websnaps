@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-"""Generate WebSnaps icon PNG files - Material Design flat style."""
+"""Generate WebSnaps icon PNG files - clear camera silhouette."""
 import struct
 import zlib
 import os
@@ -29,7 +29,6 @@ def create_png(width, height, pixel_func):
     return sig + ihdr + idat + iend
 
 def rrect(nx, ny, x0, y0, x1, y1, cr):
-    """True if (nx, ny) is inside a rounded rectangle."""
     if not (x0 <= nx <= x1 and y0 <= ny <= y1):
         return False
     in_cx = nx < x0 + cr or nx > x1 - cr
@@ -43,46 +42,41 @@ def rrect(nx, ny, x0, y0, x1, y1, cr):
 def camera_pixel(x, y, w, h):
     nx, ny = x / w, y / h
 
-    # Material Design カラー（単色・フラット）
-    INDIGO = (99, 102, 241, 255)   # #6366f1
+    INDIGO = (99, 102, 241, 255)
     WHITE  = (255, 255, 255, 255)
 
-    # ── 背景: 丸角正方形（角半径18%）────────────────────────────
-    if not rrect(nx, ny, 0.0, 0.0, 1.0, 1.0, 0.18):
+    # ── 背景: 丸角正方形（角半径22%）──────────────────────────────────
+    if not rrect(nx, ny, 0.0, 0.0, 1.0, 1.0, 0.22):
         return (0, 0, 0, 0)
 
-    # ── カメラボディ（丸角矩形・白）──────────────────────────────
-    # 四隅が背景の丸角より内側に収まる範囲
-    body = rrect(nx, ny, 0.16, 0.31, 0.84, 0.80, 0.09)
+    # ── カメラボディ: 幅広・高さも確保してシルエットを明確に ──────────
+    # 幅 82%・高さ 59%。角半径 0.22 の背景内に全コーナーが収まる。
+    body = rrect(nx, ny, 0.09, 0.24, 0.91, 0.83, 0.11)
 
-    # ── ファインダーバンプ（上部中央・白）────────────────────────
-    bump = rrect(nx, ny, 0.37, 0.19, 0.63, 0.32, 0.06)
+    # ── ファインダーバンプ: 幅 30%・上部中央 ─────────────────────────
+    bump = rrect(nx, ny, 0.35, 0.12, 0.65, 0.25, 0.07)
 
     if body or bump:
-        lx, ly = 0.5, 0.555
+        lx, ly = 0.5, 0.56
         ld = math.sqrt((nx - lx) ** 2 + (ny - ly) ** 2)
 
-        # レンズ中心ドット（白・背景色で抜いたリングをさらに白で戻す）
-        if ld < 0.065:
-            return WHITE
+        # ── レンズ: アイコン幅の約 47% と大きく描いてカメラらしく ─────
+        LENS_OUTER = 0.235   # 白いリングの外縁
+        LENS_INNER = 0.145   # インディゴで抜く内側（リング幅 ≈ 9%）
+        CENTER_DOT = 0.055   # 中心の白い点（32px 以上のみ）
 
-        # レンズ開口部（インディゴで抜く → リング状に見せる）
-        if ld < 0.175:
-            return INDIGO
+        if ld < CENTER_DOT and w >= 32:
+            return WHITE        # 中心点（レンズのハイライト感）
 
-        # フラッシュインジケーター（左上の小さい丸・16px では省略）
-        if w >= 32:
-            fx, fy = 0.265, 0.385
-            fd = math.sqrt((nx - fx) ** 2 + (ny - fy) ** 2)
-            if fd < 0.055:
-                return INDIGO
+        if ld < LENS_INNER:
+            return INDIGO       # レンズ内部（背景色で抜く）
 
-        # ボディ本体
-        return WHITE
+        if ld < LENS_OUTER:
+            return WHITE        # レンズリング（白・太め）
 
-    # 背景
+        return WHITE            # ボディ本体
+
     return INDIGO
-
 
 script_dir = os.path.dirname(os.path.abspath(__file__))
 
