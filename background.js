@@ -19,23 +19,17 @@ chrome.commands.onCommand.addListener(async (command) => {
 
 chrome.runtime.onMessage.addListener((message, sender, sendResponse) => {
   if (message.type === 'START_CAPTURE') {
+    // ポップアップが閉じる前に即座に応答し、チャンネル切断を防ぐ
+    sendResponse({ received: true });
     (async () => {
       const [tab] = await chrome.tabs.query({ active: true, currentWindow: true });
-      if (!tab) return sendResponse({ success: false });
+      if (!tab) return;
       switch (message.mode) {
-        case 'selection':
-          await startSelectionCapture(tab);
-          break;
-        case 'visible':
-          await captureVisible(tab);
-          break;
-        case 'fullpage':
-          await captureFullPage(tab);
-          break;
+        case 'selection': await startSelectionCapture(tab); break;
+        case 'visible':   await captureVisible(tab);        break;
+        case 'fullpage':  await captureFullPage(tab);       break;
       }
-      sendResponse({ success: true });
     })();
-    return true;
   }
 
   if (message.type === 'SELECTION_COMPLETE') {

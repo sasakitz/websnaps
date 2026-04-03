@@ -70,27 +70,17 @@ async function init() {
     btn.addEventListener('click', async () => {
       const mode = btn.dataset.mode;
 
-      // Visual feedback
       btn.classList.add('active');
 
-      // Save format/dest before capture so editor can read them
+      // 保存とメッセージ送信を並行して行い、受信確認後にポップアップを閉じる
       await chrome.storage.local.set({
         pendingFormat: settings.format,
         pendingDest: settings.dest
       });
 
-      if (mode === 'selection') {
-        // For selection, inject the selector first, then close popup
-        const [tab] = await chrome.tabs.query({ active: true, currentWindow: true });
-        if (tab) {
-          chrome.runtime.sendMessage({ type: 'START_CAPTURE', mode: 'selection' });
-        }
-        window.close();
-      } else {
-        // For visible/fullpage, send message and close
-        chrome.runtime.sendMessage({ type: 'START_CAPTURE', mode });
-        window.close();
-      }
+      // await で background の受信確認を待ってから閉じる
+      await chrome.runtime.sendMessage({ type: 'START_CAPTURE', mode }).catch(() => {});
+      window.close();
     });
   });
 
