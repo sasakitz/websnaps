@@ -60,7 +60,17 @@ chrome.runtime.onMessage.addListener((message, sender, sendResponse) => {
   }
 });
 
+function isInjectableUrl(url) {
+  if (!url) return false;
+  const blocked = ['chrome://', 'chrome-extension://', 'edge://', 'about:', 'data:', 'devtools://'];
+  return !blocked.some(prefix => url.startsWith(prefix));
+}
+
 async function startSelectionCapture(tab) {
+  if (!isInjectableUrl(tab.url)) {
+    console.warn('WebSnaps: このページにはスクリプトを注入できません:', tab.url);
+    return;
+  }
   try {
     // CSS を先に注入して、JS がオーバーレイを生成した時点でスタイルが適用済みの状態にする
     await chrome.scripting.insertCSS({
@@ -88,6 +98,10 @@ async function captureVisible(tab) {
 }
 
 async function captureFullPage(tab) {
+  if (!isInjectableUrl(tab.url)) {
+    console.warn('WebSnaps: このページにはスクリプトを注入できません:', tab.url);
+    return;
+  }
   try {
     const [{ result: pageInfo }] = await chrome.scripting.executeScript({
       target: { tabId: tab.id },
