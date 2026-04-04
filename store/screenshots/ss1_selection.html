@@ -1,0 +1,143 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+<meta charset="UTF-8">
+<style>
+*{margin:0;padding:0;box-sizing:border-box}
+body{width:1280px;height:800px;overflow:hidden;font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;background:#f8f8f8}
+
+/* ── Fake webpage ── */
+.site-header{background:#fff;border-bottom:1px solid #e5e7eb;padding:0 40px;height:60px;display:flex;align-items:center;gap:32px;position:relative;z-index:1}
+.site-logo{font-size:20px;font-weight:800;color:#6366f1;letter-spacing:-0.5px}
+.site-nav{display:flex;gap:24px}
+.site-nav a{font-size:14px;color:#374151;text-decoration:none}
+.site-main{display:grid;grid-template-columns:1fr 320px;gap:32px;padding:36px 40px;max-width:1280px}
+.article-tag{display:inline-block;background:#ede9fe;color:#6d28d9;font-size:12px;font-weight:600;padding:3px 10px;border-radius:20px;margin-bottom:12px}
+.article-title{font-size:28px;font-weight:800;color:#111;line-height:1.3;margin-bottom:16px}
+.article-meta{font-size:13px;color:#6b7280;margin-bottom:20px}
+.article-img{width:100%;height:200px;background:linear-gradient(135deg,#6366f1,#8b5cf6);border-radius:12px;margin-bottom:24px;display:flex;align-items:center;justify-content:center}
+.article-img span{color:rgba(255,255,255,0.4);font-size:13px}
+.article-body p{font-size:15px;color:#374151;line-height:1.8;margin-bottom:14px}
+.sidebar-card{background:#fff;border-radius:12px;padding:20px;border:1px solid #e5e7eb;margin-bottom:16px}
+.sidebar-title{font-size:13px;font-weight:700;color:#111;margin-bottom:12px}
+.sidebar-item{display:flex;gap:12px;margin-bottom:10px;align-items:flex-start}
+.sidebar-item-img{width:56px;height:40px;background:linear-gradient(135deg,#f3f4f6,#e5e7eb);border-radius:6px;flex-shrink:0}
+.sidebar-item p{font-size:13px;color:#374151;line-height:1.4}
+
+/* ── Overlay ── */
+.overlay{position:fixed;inset:0;z-index:100;cursor:crosshair;user-select:none}
+.overlay-mask{position:absolute;inset:0;background:rgba(0,0,0,0.45);clip-path:polygon(0 0,1280px 0,1280px 800px,0 800px,0 0, 320px 190px,320px 490px,780px 490px,780px 190px,320px 190px)}
+.ruler-h{position:absolute;left:0;right:0;height:1px;top:490px;background:rgba(99,102,241,0.5)}
+.ruler-v{position:absolute;top:0;bottom:0;width:1px;left:780px;background:rgba(99,102,241,0.5)}
+
+/* Toolbar */
+.toolbar{position:fixed;top:16px;left:50%;transform:translateX(-50%);display:flex;align-items:center;gap:8px;background:rgba(12,12,12,0.96);backdrop-filter:blur(16px);border:1px solid rgba(255,255,255,0.08);border-radius:12px;padding:8px 16px;box-shadow:0 8px 32px rgba(0,0,0,0.6),0 0 0 1px rgba(99,102,241,0.2);white-space:nowrap}
+.tb-logo{font-size:13px;font-weight:700;color:#a5b4fc;letter-spacing:0.5px}
+.tb-div{width:1px;height:20px;background:rgba(255,255,255,0.1)}
+.tb-btn{display:flex;align-items:center;gap:5px;padding:5px 10px;border:1px solid transparent;border-radius:7px;background:transparent;color:rgba(255,255,255,0.5);font-size:12px;cursor:pointer;font-family:inherit}
+.tb-btn.active{background:rgba(99,102,241,0.25);border-color:rgba(99,102,241,0.5);color:#a5b4fc}
+.tb-hint{font-size:12px;color:rgba(255,255,255,0.4)}
+.tb-cancel{display:flex;align-items:center;gap:5px;padding:5px 10px;border:1px solid rgba(239,68,68,0.3);border-radius:7px;background:rgba(239,68,68,0.1);color:#fca5a5;font-size:12px;font-family:inherit}
+
+/* Selection box */
+.sel-box{position:fixed;left:320px;top:190px;width:460px;height:300px;border:2px solid #6366f1;box-shadow:0 0 0 1px rgba(99,102,241,0.4),inset 0 0 0 1px rgba(255,255,255,0.1);background:rgba(99,102,241,0.06)}
+.handle{position:absolute;width:9px;height:9px;background:#fff;border:2px solid #6366f1;border-radius:2px;box-shadow:0 1px 4px rgba(0,0,0,0.4)}
+.h-nw{top:-5px;left:-5px}.h-n{top:-5px;left:calc(50% - 4px)}.h-ne{top:-5px;right:-5px}
+.h-e{top:calc(50% - 4px);right:-5px}.h-se{bottom:-5px;right:-5px}.h-s{bottom:-5px;left:calc(50% - 4px)}
+.h-sw{bottom:-5px;left:-5px}.h-w{top:calc(50% - 4px);left:-5px}
+.dim-label{position:fixed;left:503px;top:163px;background:#6366f1;color:#fff;padding:3px 8px;border-radius:6px;font-size:11px;font-family:monospace;font-weight:600;box-shadow:0 2px 8px rgba(99,102,241,0.4)}
+
+/* Confirm panel */
+.confirm{position:fixed;left:390px;top:502px;display:flex;align-items:center;gap:10px;background:rgba(12,12,12,0.97);backdrop-filter:blur(16px);border:1px solid rgba(255,255,255,0.1);border-radius:12px;padding:10px 14px;box-shadow:0 8px 32px rgba(0,0,0,0.6);white-space:nowrap}
+.sz-row{display:flex;align-items:center;gap:6px}
+.sz-field{display:flex;align-items:center;gap:5px}
+.sz-lbl{font-size:11px;font-weight:600;color:rgba(255,255,255,0.4);font-family:inherit}
+.sz-input{width:62px;padding:4px 8px;background:rgba(255,255,255,0.07);border:1px solid rgba(255,255,255,0.12);border-radius:6px;color:#f0f0f0;font-size:12px;font-family:monospace;text-align:right}
+.sz-sep,.sz-unit{font-size:13px;color:rgba(255,255,255,0.3);font-family:inherit}
+.cap-btn{display:flex;align-items:center;gap:6px;padding:6px 14px;background:#6366f1;border:none;border-radius:8px;color:#fff;font-size:12px;font-weight:600;cursor:pointer;font-family:inherit}
+</style>
+</head>
+<body>
+<!-- Fake webpage -->
+<header class="site-header">
+  <div class="site-logo">TechFeed</div>
+  <nav class="site-nav">
+    <a href="#">テクノロジー</a><a href="#">デザイン</a><a href="#">プロダクト</a><a href="#">開発</a>
+  </nav>
+</header>
+<div class="site-main">
+  <article>
+    <div class="article-tag">Chrome 拡張機能</div>
+    <h1 class="article-title">次世代のスクリーンショットツールが登場 — WebSnaps レビュー</h1>
+    <p class="article-meta">2026年4月4日 · 読了時間 5分</p>
+    <div class="article-img"><span>article image</span></div>
+    <div class="article-body">
+      <p>スクリーンショットの撮影と編集をシームレスに行える Chrome 拡張機能「WebSnaps」が公開された。DOM要素の選択からページ全体のキャプチャまで、従来のツールとは一線を画す使いやすさが注目を集めている。</p>
+      <p>特筆すべきは範囲選択後のリサイズ機能だ。ドラッグで選択したエリアをハンドルで微調整したり、数値を直接入力して正確なサイズを指定することができる。</p>
+      <p>内蔵エディタにはペン、矢印、テキスト、ぼかし、モザイクなど豊富なアノテーション機能が揃っており、キャプチャから編集・保存まで一気通貫で行えるのが大きな魅力だ。</p>
+    </div>
+  </article>
+  <aside>
+    <div class="sidebar-card">
+      <div class="sidebar-title">関連記事</div>
+      <div class="sidebar-item"><div class="sidebar-item-img"></div><p>ブラウザ拡張機能の新潮流：Manifest V3 の世界</p></div>
+      <div class="sidebar-item"><div class="sidebar-item-img"></div><p>Chrome DevTools を使いこなす10のテクニック</p></div>
+      <div class="sidebar-item"><div class="sidebar-item-img"></div><p>Webデザイナーが使う必須ツール2026年版</p></div>
+    </div>
+  </aside>
+</div>
+
+<!-- WebSnaps Overlay -->
+<div class="overlay">
+  <div class="overlay-mask"></div>
+  <div class="ruler-h"></div>
+  <div class="ruler-v"></div>
+
+  <div class="toolbar">
+    <div class="tb-logo">WebSnaps</div>
+    <div class="tb-div"></div>
+    <button class="tb-btn active">
+      <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="3" width="18" height="18" rx="2"/></svg>
+      矩形選択
+    </button>
+    <button class="tb-btn">
+      <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M3 9l9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"/></svg>
+      要素選択
+    </button>
+    <div class="tb-div"></div>
+    <span class="tb-hint">調整してキャプチャ（Enter）</span>
+    <div class="tb-div"></div>
+    <button class="tb-cancel">
+      <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>
+      Esc
+    </button>
+  </div>
+
+  <div class="sel-box">
+    <div class="handle h-nw"></div><div class="handle h-n"></div><div class="handle h-ne"></div>
+    <div class="handle h-e"></div><div class="handle h-se"></div><div class="handle h-s"></div>
+    <div class="handle h-sw"></div><div class="handle h-w"></div>
+  </div>
+  <div class="dim-label">460 × 300</div>
+
+  <div class="confirm">
+    <div class="sz-row">
+      <div class="sz-field">
+        <span class="sz-lbl">W</span>
+        <div class="sz-input" style="color:#f0f0f0;display:flex;align-items:center;justify-content:flex-end">460</div>
+      </div>
+      <span class="sz-sep">×</span>
+      <div class="sz-field">
+        <span class="sz-lbl">H</span>
+        <div class="sz-input" style="display:flex;align-items:center;justify-content:flex-end">300</div>
+      </div>
+      <span class="sz-unit">px</span>
+    </div>
+    <button class="cap-btn">
+      <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M23 19a2 2 0 0 1-2 2H3a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h4l2-3h6l2 3h4a2 2 0 0 1 2 2z"/><circle cx="12" cy="13" r="4"/></svg>
+      キャプチャ
+    </button>
+  </div>
+</div>
+</body>
+</html>

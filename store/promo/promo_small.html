@@ -1,0 +1,66 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+<meta charset="UTF-8">
+<style>
+*{margin:0;padding:0;box-sizing:border-box}
+body{width:440px;height:280px;overflow:hidden;font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif}
+.card{width:440px;height:280px;background:linear-gradient(135deg,#4f46e5 0%,#6366f1 40%,#7c3aed 100%);position:relative;overflow:hidden;display:flex;align-items:center;padding:36px}
+
+/* Decorative circles */
+.deco{position:absolute;border-radius:50%;border:1.5px solid rgba(255,255,255,0.12)}
+.deco1{width:220px;height:220px;right:-40px;top:-60px}
+.deco2{width:160px;height:160px;right:-10px;top:-10px}
+.deco3{width:100px;height:100px;right:20px;top:20px}
+
+/* Camera icon */
+.icon-wrap{position:absolute;right:40px;top:50%;transform:translateY(-50%);width:120px;height:120px}
+.icon-bg{width:120px;height:120px;background:rgba(255,255,255,0.12);border-radius:28px;display:flex;align-items:center;justify-content:center;backdrop-filter:blur(8px);border:1px solid rgba(255,255,255,0.2)}
+
+/* Text */
+.text-area{flex:1;padding-right:140px}
+.brand{font-size:28px;font-weight:900;color:#fff;letter-spacing:-0.5px;margin-bottom:6px;line-height:1}
+.tagline{font-size:13px;color:rgba(255,255,255,0.8);margin-bottom:20px;line-height:1.5}
+.features{display:flex;flex-direction:column;gap:7px}
+.feat{display:flex;align-items:center;gap:8px;font-size:12px;color:rgba(255,255,255,0.85)}
+.feat-dot{width:5px;height:5px;border-radius:50%;background:#a5f3fc;flex-shrink:0}
+.badge{position:absolute;bottom:20px;right:20px;background:rgba(255,255,255,0.15);border:1px solid rgba(255,255,255,0.25);border-radius:20px;padding:4px 12px;font-size:10px;color:rgba(255,255,255,0.8);backdrop-filter:blur(8px)}
+</style>
+</head>
+<body>
+<div class="card">
+  <div class="deco deco1"></div>
+  <div class="deco deco2"></div>
+  <div class="deco deco3"></div>
+
+  <div class="text-area">
+    <div class="brand">WebSnaps</div>
+    <div class="tagline">Webページを素早くキャプチャ・<br>その場で編集・即保存</div>
+    <div class="features">
+      <div class="feat"><div class="feat-dot"></div>範囲選択 / 要素選択 / ページ全体</div>
+      <div class="feat"><div class="feat-dot"></div>矢印・テキスト・ぼかしで注釈</div>
+      <div class="feat"><div class="feat-dot"></div>PNG・JPG保存 / クリップボードコピー</div>
+    </div>
+  </div>
+
+  <div class="icon-wrap">
+    <div class="icon-bg">
+      <svg width="72" height="72" viewBox="0 0 100 100" fill="none" xmlns="http://www.w3.org/2000/svg">
+        <!-- Camera body -->
+        <rect x="9" y="24" width="82" height="59" rx="11" fill="white"/>
+        <!-- Bump -->
+        <rect x="35" y="12" width="30" height="13" rx="7" fill="white"/>
+        <!-- Lens outer ring -->
+        <circle cx="50" cy="56" r="23.5" fill="white"/>
+        <!-- Lens inner -->
+        <circle cx="50" cy="56" r="14.5" fill="#6366f1"/>
+        <!-- Lens center dot -->
+        <circle cx="50" cy="56" r="5.5" fill="white"/>
+      </svg>
+    </div>
+  </div>
+
+  <div class="badge">Chrome 拡張機能</div>
+</div>
+</body>
+</html>
