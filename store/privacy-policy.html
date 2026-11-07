@@ -129,12 +129,11 @@
 
   <h2>要求する権限</h2>
   <ul>
-    <li><strong>activeTab:</strong> ポップアップ起動やショートカットなど、ユーザーの操作を起点にアクティブなタブを撮影・操作するため。</li>
+    <li><strong>activeTab:</strong> ポップアップ起動やショートカットなど、ユーザーの操作を起点にアクティブなタブへ一時アクセスし、撮影・選択UIの挿入・自動スクロールを行うため。すべてのサイトへの恒常的なホスト権限は要求しません。別のオリジンへの移動やタブの終了で一時アクセスは失われます。</li>
     <li><strong>scripting:</strong> 選択UIの挿入、要素の位置・サイズ取得、自動スクロールと撮影中の表示調整・復元のため。</li>
     <li><strong>clipboardWrite:</strong> 「コピー」を押した画像をクリップボードへ書き込むため。</li>
     <li><strong>storage:</strong> 保存形式の設定を端末内に保持するため。</li>
     <li><strong>tabs:</strong> 撮影対象URLや開いている編集タブのURLを確認し、一時データを適切に削除するため。</li>
-    <li><strong>&lt;all_urls&gt;:</strong> ユーザーが撮影を指示したページに選択UIや撮影用スクリプトを挿入し、表示範囲を撮影するため。常駐コンテンツスクリプトによる自動収集は行いません。ブラウザが制限するページには利用できません。</li>
   </ul>
 
   <h2>第三者への提供とデータ利用</h2>
@@ -153,7 +152,7 @@
   <div lang="en">
     <p>WebSnaps, provided by sasakitz, captures and edits web pages locally when you request it. It handles screenshots, selection geometry, page layout, selection input and tab information (including URLs). Screenshots may contain personal or sensitive information. These data are used only to provide capture, editing and export, and are not transmitted to the developer or third parties, sold, used for advertising, unrelated purposes, creditworthiness or lending.</p>
     <p>Original captures and capture metadata are temporarily stored in the extension's IndexedDB for handoff and editor reload. They are deleted when the editor tab closes; orphaned records are removed on the next service-worker startup. In-memory edits are lost on reload. PNG/JPG preferences are stored in chrome.storage.local until changed or uninstalled. Tab URLs are read to identify capture targets and live editor tabs; they are not stored in a browsing-history database. Local error logs may show a target URL.</p>
-    <p>Saving or copying exports an image to your downloads or OS clipboard at your request. Uninstalling removes extension data, but not exported files or clipboard history. The extension has no analytics, ads, remote code or sign-in. Chrome and OS access controls protect local data. Contact: <a href="https://github.com/sasakitz/websnaps/issues">GitHub Issues</a>. Do not post sensitive data in public issues. This page is updated when the policy changes.</p>
+    <p>Saving or copying exports an image to your downloads or OS clipboard at your request. Uninstalling removes extension data, but not exported files or clipboard history. The extension requests no persistent host permissions. Access to page content for capture is temporarily granted by activeTab after a toolbar or keyboard invocation and is revoked on cross-origin navigation or tab closure. The extension has no analytics, ads, remote code or sign-in. Chrome and OS access controls protect local data. Contact: <a href="https://github.com/sasakitz/websnaps/issues">GitHub Issues</a>. Do not post sensitive data in public issues. This page is updated when the policy changes.</p>
   </div>
 
   <footer>
