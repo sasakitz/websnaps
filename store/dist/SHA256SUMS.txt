@@ -1,2 +1,0 @@
-44e06adeba420bcc4c18690ef61dc29ecf75e4949554a986ff011b368603ec9f  websnaps-1.1.0.zip
-ba12779dc99f7a93f66361e0450f01f007e21fcad9c108eaaffc2ff4be568d27  websnaps-1.1.0-submission-kit.zip
