@@ -1,9 +1,0 @@
-.claude/
-*.DS_Store
-__pycache__/
-*.py[cod]
-
-# Store listing and review materials remain local; keep the public privacy policy.
-/store/*
-!/store/privacy-policy.html
-/websnaps.zip
