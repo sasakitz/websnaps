@@ -1,6 +1,6 @@
 # WebSnaps — Chrome ウェブストア掲載情報
 
-対象: manifest 1.0.7 / 日本語UI。2026-11-07作成。ZIPの名前・短い説明は manifest.json から読み込まれます。
+対象: manifest 1.1.0 / 日本語UI。2026-11-07作成。ZIPの名前・短い説明は manifest.json から読み込まれます。
 
 | 入力欄 | 入力内容 |
 |---|---|

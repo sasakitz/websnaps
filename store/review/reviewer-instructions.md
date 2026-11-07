@@ -1,6 +1,6 @@
 # 審査担当者向け説明 / Reviewer instructions
 
-Version: 1.0.7. No account, password, license key, payment or backend service is required. The UI is in Japanese. No additional hardware is needed.
+Version: 1.1.0. No account, password, license key, payment or backend service is required. The UI is in Japanese. No additional hardware is needed.
 
 ## 審査フォーム「テスト手順」貼り付け用（英語）
 

@@ -1,13 +1,13 @@
 # WebSnaps — CWS掲載・審査提出資材
 
-WebSnaps 1.0.7向け。日本語の掲載文、実画面の掲載画像、プライバシーポリシー、審査フォーム入力内容とテスト手順、提出ZIPをまとめています。CWSへの提出自体は行っていません。
+WebSnaps 1.1.0向け。日本語の掲載文、実画面の掲載画像、プライバシーポリシー、審査フォーム入力内容とテスト手順、提出ZIPをまとめています。CWSへの提出自体は行っていません。
 
 ## 使うファイル
 
 | 用途 | ファイル |
 |---|---|
-| **CWSにアップロードする拡張機能** | [dist/websnaps-1.0.7.zip](dist/websnaps-1.0.7.zip) |
-| 資料をまとめて受け渡す | [dist/websnaps-1.0.7-submission-kit.zip](dist/websnaps-1.0.7-submission-kit.zip) |
+| **CWSにアップロードする拡張機能** | [dist/websnaps-1.1.0.zip](dist/websnaps-1.1.0.zip) |
+| 資料をまとめて受け渡す | [dist/websnaps-1.1.0-submission-kit.zip](dist/websnaps-1.1.0-submission-kit.zip) |
 | 掲載文・画像順・URL | [store-listing.md](store-listing.md) |
 | プライバシー欄・権限理由 | [review/privacy-practices.md](review/privacy-practices.md) |
 | 審査員向け説明と操作手順 | [review/reviewer-instructions.md](review/reviewer-instructions.md) |
@@ -17,7 +17,7 @@ WebSnaps 1.0.7向け。日本語の掲載文、実画面の掲載画像、プラ
 | ファイル別ハッシュと寸法検査 | [review/package-verification.json](review/package-verification.json) |
 | 配布ZIPのSHA-256 | [dist/SHA256SUMS.txt](dist/SHA256SUMS.txt) |
 
-`submission-kit.zip` は保管・受け渡し用です。Chromeウェブストアにアップロードするのは `websnaps-1.0.7.zip` のみです。ルートの `websnaps.zip` も同じ内容に更新しています。
+`submission-kit.zip` は保管・受け渡し用です。Chromeウェブストアにアップロードするのは `websnaps-1.1.0.zip` のみです。ルートの `websnaps.zip` も同じ内容に更新しています。
 
 ## 画像
 

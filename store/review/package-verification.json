@@ -1,8 +1,8 @@
 {
-  "version": "1.0.7",
+  "version": "1.1.0",
   "descriptionCharacters": 72,
-  "package": "dist/websnaps-1.0.7.zip",
-  "packageSHA256": "a1f937473fb2e0459f292ab33f204346385b7b8e8016aee5d3342ac1f24fa601",
+  "package": "dist/websnaps-1.1.0.zip",
+  "packageSHA256": "44e06adeba420bcc4c18690ef61dc29ecf75e4949554a986ff011b368603ec9f",
   "permissions": [
     "activeTab",
     "scripting",
@@ -67,7 +67,7 @@
     {
       "path": "manifest.json",
       "bytes": 1440,
-      "sha256": "c60100fd26d1395d2b66e64009294fed6a4f26ce3300db1c9dfbe8457b4edcfc"
+      "sha256": "f5a67a29705a80a429cc7f481edaaeeb20f19c4beddd0e972fe2a3e259f92441"
     },
     {
       "path": "popup/popup.css",

@@ -1,6 +1,6 @@
 # Privacy practices — ダッシュボード入力資料
 
-対象: WebSnaps 1.0.7 / manifest.jsonの権限を変更せず提出する場合。実装確認日: 2026-11-07。
+対象: WebSnaps 1.1.0 / manifest.jsonの権限を変更せず提出する場合。実装確認日: 2026-11-07。
 
 ## 単一目的（貼り付け用）
 
