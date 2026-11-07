@@ -8,7 +8,7 @@
   let dimLabel = null;
   let confirmPanel = null;
 
-  // State: 'idle' | 'dragging' | 'selected' | 'resizing' | 'moving'
+  // State: 'idle' | 'dragging' | 'selected' | 'resizing' | 'moving' | 'capturing'
   let state = 'idle';
   let currentRect = null; // { x, y, w, h }
   let currentMode = 'drag';
@@ -27,21 +27,33 @@
   function createOverlay() {
     if (document.getElementById('__websnaps-overlay')) return;
 
+    state = 'idle';
+    currentMode = 'drag';
+    currentRect = null;
+    hoveredEl = null;
+    activeHandle = null;
     overlay = document.createElement('div');
     overlay.id = '__websnaps-overlay';
 
     const toolbar = document.createElement('div');
     toolbar.className = '__ws-toolbar';
     toolbar.innerHTML = `
-      <div class="__ws-logo">WebSnaps</div>
+      <div class="__ws-logo"><svg aria-hidden="true" xmlns="http://www.w3.org/2000/svg" width="128" height="128" viewBox="0 0 40 40" fill="none">
+  <rect width="40" height="40" rx="11" fill="#123C3A"/>
+  <g transform="translate(-4 -4) scale(1.2)">
+  <path d="M16 10H11a1 1 0 0 0-1 1v5m14 14h5a1 1 0 0 0 1-1v-5M10 24v5a1 1 0 0 0 1 1h5" stroke="#C5F47A" stroke-width="3" stroke-linecap="round"/>
+  <rect x="16" y="16" width="8" height="8" rx="2.5" fill="white"/>
+  <path d="m29 7 1.6 4.4L35 13l-4.4 1.6L29 19l-1.6-4.4L23 13l4.4-1.6Z" fill="#C5F47A"/>
+  </g>
+</svg>WebSnaps</div>
       <div class="__ws-divider"></div>
-      <button class="__ws-mode-btn __ws-active" data-mode="drag">
+      <button class="__ws-mode-btn __ws-active" data-mode="drag" aria-pressed="true">
         <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
           <rect x="3" y="3" width="18" height="18" rx="2"/>
         </svg>
         矩形選択
       </button>
-      <button class="__ws-mode-btn" data-mode="element">
+      <button class="__ws-mode-btn" data-mode="element" aria-pressed="false">
         <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
           <path d="M3 9l9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"/>
         </svg>
@@ -89,17 +101,17 @@
     // Confirm panel (W / H inputs + capture button)
     confirmPanel = document.createElement('div');
     confirmPanel.className = '__ws-confirm-panel';
-    confirmPanel.style.display = 'none';
+    confirmPanel.style.setProperty('display', 'none', 'important');
     confirmPanel.innerHTML = `
       <div class="__ws-size-row">
         <label class="__ws-size-field">
           <span class="__ws-size-label">W</span>
-          <input class="__ws-size-input" id="__ws-w-input" type="number" min="1" step="1">
+          <input class="__ws-size-input" id="__ws-w-input" aria-label="選択範囲の幅" type="number" min="1" step="1">
         </label>
         <span class="__ws-size-sep">×</span>
         <label class="__ws-size-field">
           <span class="__ws-size-label">H</span>
-          <input class="__ws-size-input" id="__ws-h-input" type="number" min="1" step="1">
+          <input class="__ws-size-input" id="__ws-h-input" aria-label="選択範囲の高さ" type="number" min="1" step="1">
         </label>
         <span class="__ws-size-unit">px</span>
       </div>
@@ -126,8 +138,12 @@
     toolbar.querySelectorAll('.__ws-mode-btn').forEach(btn => {
       btn.addEventListener('click', e => {
         e.stopPropagation();
-        toolbar.querySelectorAll('.__ws-mode-btn').forEach(b => b.classList.remove('__ws-active'));
+        toolbar.querySelectorAll('.__ws-mode-btn').forEach(b => {
+          b.classList.remove('__ws-active');
+          b.setAttribute('aria-pressed', 'false');
+        });
         btn.classList.add('__ws-active');
+        btn.setAttribute('aria-pressed', 'true');
         currentMode = btn.dataset.mode;
         updateHint();
         overlay.classList.toggle('__ws-element-mode', currentMode === 'element');
@@ -199,11 +215,13 @@
   // ── State transitions ────────────────────────────────────────────────────────
 
   function enterSelected(rect) {
-    currentRect = { x: rect.x, y: rect.y, w: rect.w, h: rect.h };
+    const x = Math.max(0, rect.x);
+    const y = Math.max(0, rect.y);
+    currentRect = { x, y, w: Math.min(window.innerWidth, rect.x + rect.w) - x, h: Math.min(window.innerHeight, rect.y + rect.h) - y };
     state = 'selected';
     selectionBox.classList.add('__ws-has-selection');
     applyRect();
-    confirmPanel.style.display = 'flex';
+    confirmPanel.style.setProperty('display', 'flex', 'important');
     positionConfirmPanel();
     updateHint('調整してキャプチャ（Enter）');
   }
@@ -212,10 +230,10 @@
     state = 'idle';
     currentRect = null;
     hoveredEl = null;
-    selectionBox.style.display = 'none';
+    selectionBox.style.setProperty('display', 'none', 'important');
     selectionBox.classList.remove('__ws-has-selection');
-    dimLabel.style.display = 'none';
-    confirmPanel.style.display = 'none';
+    dimLabel.style.setProperty('display', 'none', 'important');
+    confirmPanel.style.setProperty('display', 'none', 'important');
     resetMask();
     updateHint();
   }
@@ -227,10 +245,13 @@
       y: currentRect.y,
       width:  currentRect.w,
       height: currentRect.h,
-      devicePixelRatio: window.devicePixelRatio || 1
+      devicePixelRatio: window.devicePixelRatio || 1,
+      viewportWidth: window.innerWidth,
+      viewportHeight: window.innerHeight
     };
+    state = 'capturing';
     // オーバーレイを先に非表示にし、ブラウザが再描画する2フレーム後にメッセージ送信
-    if (overlay) overlay.style.visibility = 'hidden';
+    if (overlay) overlay.style.setProperty('visibility', 'hidden', 'important');
     requestAnimationFrame(() => {
       requestAnimationFrame(() => {
         cleanup();
@@ -300,8 +321,8 @@
 
     if (state === 'moving' && handleStartRect) {
       currentRect = {
-        x: handleStartRect.x + (mx - handleStartMX),
-        y: handleStartRect.y + (my - handleStartMY),
+        x: Math.max(0, Math.min(window.innerWidth - handleStartRect.w, handleStartRect.x + (mx - handleStartMX))),
+        y: Math.max(0, Math.min(window.innerHeight - handleStartRect.h, handleStartRect.y + (my - handleStartMY))),
         w: handleStartRect.w,
         h: handleStartRect.h
       };
@@ -319,6 +340,8 @@
         showSelectionBox(r.left, r.top, r.width, r.height);
         showDimLabel(r.width, r.height, r.left, r.top);
         updateMask(r.left, r.top, r.width, r.height);
+      } else {
+        exitSelected();
       }
     }
   }
@@ -342,10 +365,11 @@
   }
 
   function onKeyDown(e) {
-    // Don't intercept events when typing in inputs
-    if (e.target.closest('.__ws-confirm-panel')) return;
+    if (e.target.closest('.__ws-confirm-panel') && e.key !== 'Escape') return;
 
     if (e.key === 'Escape') {
+      e.preventDefault();
+      e.stopPropagation();
       if (state === 'selected') { exitSelected(); }
       else { cleanup(); }
     }
@@ -373,6 +397,10 @@
 
   function applyRect() {
     if (!currentRect) return;
+    currentRect.x = Math.max(0, Math.min(currentRect.x, window.innerWidth - 1));
+    currentRect.y = Math.max(0, Math.min(currentRect.y, window.innerHeight - 1));
+    currentRect.w = Math.max(1, Math.min(currentRect.w, window.innerWidth - currentRect.x));
+    currentRect.h = Math.max(1, Math.min(currentRect.h, window.innerHeight - currentRect.y));
     const { x, y, w, h } = currentRect;
     showSelectionBox(x, y, w, h);
     showDimLabel(w, h, x, y);
@@ -394,11 +422,13 @@
   function positionConfirmPanel() {
     if (!currentRect) return;
     const { x, y, w, h } = currentRect;
-    const panelW = 300;
+    const panelW = confirmPanel.offsetWidth || 300;
+    const panelH = confirmPanel.offsetHeight || 56;
     let px = x + w / 2 - panelW / 2;
     let py = y + h + 12;
     px = Math.max(8, Math.min(px, window.innerWidth - panelW - 8));
-    if (py + 52 > window.innerHeight) py = y - 52 - 12;
+    if (py + panelH > window.innerHeight - 8) py = y - panelH - 12;
+    py = Math.max(8, Math.min(py, window.innerHeight - panelH - 8));
     confirmPanel.style.left = px + 'px';
     confirmPanel.style.top  = py + 'px';
   }
@@ -417,7 +447,7 @@
 
   function showDimLabel(w, h, x, y) {
     dimLabel.textContent = `${Math.round(w)} × ${Math.round(h)}`;
-    dimLabel.style.display = 'block';
+    dimLabel.style.setProperty('display', 'block', 'important');
     dimLabel.style.left = Math.max(4, x + w / 2 - 35) + 'px';
     dimLabel.style.top  = Math.max(4, y - 26) + 'px';
   }
@@ -448,7 +478,6 @@
   // ── Cleanup ──────────────────────────────────────────────────────────────────
 
   function cleanup() {
-    window.__websnapsInjected = false;
     if (overlay) overlay.remove();
     overlay = null;
     document.removeEventListener('keydown', onKeyDown, true);
@@ -457,6 +486,7 @@
   // ── Bootstrap ────────────────────────────────────────────────────────────────
 
   chrome.runtime.onMessage.addListener(message => {
+    if (message.type === 'CANCEL_SELECTION') { cleanup(); return; }
     if (message.type === 'START_SELECTION' && !document.getElementById('__websnaps-overlay')) {
       createOverlay();
     }

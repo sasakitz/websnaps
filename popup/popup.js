@@ -1,25 +1,25 @@
 // WebSnaps Popup Script
 
 const settings = {
-  format: 'png',
-  dest: 'file'
+  format: 'png'
 };
 
 async function loadSettings() {
-  const stored = await chrome.storage.local.get(['format', 'dest', 'shortcuts']);
+  const stored = await chrome.storage.local.get(['format']);
   if (stored.format) settings.format = stored.format;
-  if (stored.dest) settings.dest = stored.dest;
   return stored;
 }
 
 async function saveSettings() {
-  await chrome.storage.local.set({ format: settings.format, dest: settings.dest });
+  await chrome.storage.local.set({ format: settings.format });
 }
 
 function setToggle(groupId, value) {
   const group = document.getElementById(groupId);
   group.querySelectorAll('.toggle-btn').forEach(btn => {
-    btn.classList.toggle('active', btn.dataset.value === value);
+    const active = btn.dataset.value === value;
+    btn.classList.toggle('active', active);
+    btn.setAttribute('aria-pressed', String(active));
   });
 }
 
@@ -29,7 +29,8 @@ function setupToggleGroup(groupId, key) {
     btn.addEventListener('click', () => {
       settings[key] = btn.dataset.value;
       setToggle(groupId, btn.dataset.value);
-      saveSettings();
+      updateFormatHint();
+      void saveSettings().catch(() => showError('設定を保存できませんでした。もう一度お試しください。'));
     });
   });
 }
@@ -47,40 +48,52 @@ async function getActualShortcuts() {
   }
 }
 
+function updateFormatHint() {
+  document.getElementById('format-hint').textContent = settings.format === 'jpg'
+    ? 'JPG · 写真をコンパクトに保存' : 'PNG · 文字や図をくっきり保存';
+}
+
+function showError(message) {
+  const error = document.getElementById('capture-error');
+  error.textContent = message;
+  error.hidden = false;
+}
+
 async function init() {
-  await loadSettings();
+  try { await loadSettings(); } catch { showError('設定を読み込めませんでした。標準設定で撮影できます。'); }
 
   // Apply saved settings to UI
   setToggle('format-group', settings.format);
-  setToggle('dest-group', settings.dest);
   setupToggleGroup('format-group', 'format');
-  setupToggleGroup('dest-group', 'dest');
+  updateFormatHint();
 
   // Load actual shortcuts from chrome.commands
   const shortcuts = await getActualShortcuts();
   document.querySelectorAll('.capture-shortcut').forEach(el => {
     const cmd = el.dataset.command;
-    if (shortcuts[cmd]) {
-      el.textContent = shortcuts[cmd];
+    if (Object.prototype.hasOwnProperty.call(shortcuts, cmd)) {
+      el.textContent = shortcuts[cmd] || '未設定';
     }
   });
 
   // Capture button handlers
   document.querySelectorAll('.capture-btn').forEach(btn => {
     btn.addEventListener('click', async () => {
-      const mode = btn.dataset.mode;
-
+      const buttons = document.querySelectorAll('.capture-btn');
+      buttons.forEach(button => { button.disabled = true; });
       btn.classList.add('active');
-
-      // 保存とメッセージ送信を並行して行い、受信確認後にポップアップを閉じる
-      await chrome.storage.local.set({
-        pendingFormat: settings.format,
-        pendingDest: settings.dest
-      });
-
-      // await で background の受信確認を待ってから閉じる
-      await chrome.runtime.sendMessage({ type: 'START_CAPTURE', mode }).catch(() => {});
-      window.close();
+      btn.setAttribute('aria-busy', 'true');
+      document.getElementById('capture-error').hidden = true;
+      try {
+        await chrome.storage.local.set({ pendingFormat: settings.format });
+        await chrome.runtime.sendMessage({ type: 'START_CAPTURE', mode: btn.dataset.mode });
+        window.close();
+      } catch {
+        showError('撮影を開始できませんでした。ページを再読み込みしてお試しください。');
+        buttons.forEach(button => { button.disabled = false; });
+        btn.classList.remove('active');
+        btn.removeAttribute('aria-busy');
+      }
     });
   });
 

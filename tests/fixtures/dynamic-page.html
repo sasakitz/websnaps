@@ -1,0 +1,27 @@
+<!doctype html>
+<html lang="ja">
+<meta charset="utf-8">
+<title>WebSnaps: 撮影途中に高さが縮むページ</title>
+<style>
+  * { box-sizing: border-box; }
+  body { margin: 0; font: 24px/1.7 system-ui, sans-serif; color: #123c3a; }
+  #late-slot { height: 605px; display: grid; place-content: center; background: #d9e7cd; }
+  main { height: 9859px; background: repeating-linear-gradient(#fff 0 811px, #e5f3eb 811px 1622px); }
+  section { height: 811px; padding: 48px; border-top: 1px solid #99b5a6; }
+  h1 { font-size: 30px; }
+</style>
+<div id="late-slot">スクロール中に削除される605pxの領域</div>
+<main>
+  <section><h1>動的レイアウトの回帰テスト</h1><p>ページ全体キャプチャ中、6504pxまでスクロールすると先頭の領域が消えます。</p><p>撮影が最初からやり直され、1〜12の区間が順番に結合されることを確認してください。</p></section>
+  <section>02</section><section>03</section><section>04</section><section>05</section><section>06</section>
+  <section>07</section><section>08</section><section>09</section><section>10</section><section>11</section><section>12</section>
+</main>
+<script>
+  function collapseSlot() {
+    if (window.scrollY < 6504) return;
+    document.getElementById('late-slot')?.remove();
+    window.removeEventListener('scroll', collapseSlot);
+  }
+  window.addEventListener('scroll', collapseSlot);
+</script>
+</html>

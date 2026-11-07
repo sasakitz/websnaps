@@ -1,0 +1,45 @@
+<!doctype html>
+<html lang="ja">
+<meta charset="utf-8">
+<title>WebSnaps capture storage regression tests</title>
+<pre id="results">Running…</pre>
+<script src="../shared/capture-store.js"></script>
+<script>
+(async () => {
+  const checks = [];
+  const created = [];
+  function check(name, value) {
+    if (!value) throw new Error(name);
+    checks.push(name);
+  }
+  try {
+    // Keep this test's records separate from any other open test tab.
+    const largeData = 'x'.repeat(12 * 1024 * 1024);
+    const [first, second] = await Promise.all([
+      CaptureStore.save({ type: 'visible', dataUrl: largeData }),
+      CaptureStore.save({ type: 'visible', dataUrl: 'second' })
+    ]);
+    created.push(first, second);
+    check('unique IDs under concurrent saves', first !== second);
+    check('12 MiB capture roundtrip', (await CaptureStore.get(first)).dataUrl === largeData);
+    check('isolated second capture', (await CaptureStore.get(second)).dataUrl === 'second');
+    await CaptureStore.attach(first, 1234567);
+    await CaptureStore.removeForTab(1234567);
+    check('closed tab data removed', await CaptureStore.get(first) === undefined);
+    check('other editor preserved', (await CaptureStore.get(second)).dataUrl === 'second');
+    await CaptureStore.prune([second]);
+    check('live capture survives cleanup', (await CaptureStore.get(second)).dataUrl === 'second');
+    await CaptureStore.prune([]);
+    check('orphan capture removed', await CaptureStore.get(second) === undefined);
+    let rejected = false;
+    try { await CaptureStore.save({ invalid: () => {} }); } catch { rejected = true; }
+    check('failed transaction rejects', rejected);
+    document.getElementById('results').textContent = JSON.stringify({ passed: checks, errors: [] });
+  } catch (error) {
+    document.getElementById('results').textContent = JSON.stringify({ passed: checks, errors: [String(error)] });
+  } finally {
+    await Promise.all(created.map(id => CaptureStore.remove(id)));
+  }
+})();
+</script>
+</html>

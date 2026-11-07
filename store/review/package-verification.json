@@ -1,0 +1,156 @@
+{
+  "version": "1.0.7",
+  "descriptionCharacters": 72,
+  "package": "dist/websnaps-1.0.7.zip",
+  "packageSHA256": "a1f937473fb2e0459f292ab33f204346385b7b8e8016aee5d3342ac1f24fa601",
+  "permissions": [
+    "activeTab",
+    "scripting",
+    "clipboardWrite",
+    "storage",
+    "tabs"
+  ],
+  "hostPermissions": [
+    "<all_urls>"
+  ],
+  "runtimeFiles": [
+    {
+      "path": "background.js",
+      "bytes": 16550,
+      "sha256": "c751c8d6f23200c9c8bef4a29706c129e32fb90152704ba55999cbde6164f280"
+    },
+    {
+      "path": "content/selector.css",
+      "bytes": 12322,
+      "sha256": "4444533cd5690cf1b7a3395879b1a7fefce6abb25c7314dd12ec7ddac57dfea8"
+    },
+    {
+      "path": "content/selector.js",
+      "bytes": 18591,
+      "sha256": "5de51b1a5892d3dcee029a2f1919d328f69acefc140b7d157332a11b8a76bbd5"
+    },
+    {
+      "path": "editor/editor.css",
+      "bytes": 17019,
+      "sha256": "508d2e9a774a714d2c1c2abcd0a7d49c4a591ee032009a5134485eb6d129a4cc"
+    },
+    {
+      "path": "editor/editor.html",
+      "bytes": 18763,
+      "sha256": "86309f9c6087e71a1e3fcc382c6e134cb2921fb9c8c731cf2bff40e95581ff3a"
+    },
+    {
+      "path": "editor/editor.js",
+      "bytes": 38760,
+      "sha256": "a0cdc04ef02db0a5a3b4d2ee77a8610581c1066ba6de3497fceb649d0856180c"
+    },
+    {
+      "path": "icons/brand.svg",
+      "bytes": 515,
+      "sha256": "7d2915365b6d13ec2391553bb080086548682f5e3060d993a08c60523965c3c2"
+    },
+    {
+      "path": "icons/icon128.png",
+      "bytes": 6263,
+      "sha256": "d237a5a04b51ffc63ea94aa8a9aa7007868c76dd0b22628a45891bd8d4a42282"
+    },
+    {
+      "path": "icons/icon16.png",
+      "bytes": 826,
+      "sha256": "785c0b1c4c3e808cdd2d6c62ad747157700f362e3fb01d48fe506021a2408ff9"
+    },
+    {
+      "path": "icons/icon48.png",
+      "bytes": 2941,
+      "sha256": "46fedf43311a582cf0790ef5f94ef973c4dfa489bd7e6a37c56298c70294200c"
+    },
+    {
+      "path": "manifest.json",
+      "bytes": 1440,
+      "sha256": "c60100fd26d1395d2b66e64009294fed6a4f26ce3300db1c9dfbe8457b4edcfc"
+    },
+    {
+      "path": "popup/popup.css",
+      "bytes": 4249,
+      "sha256": "d90b7dd39da3ba13e2ebb81b9e0604333a47a82bffc2142a2908044c5eb9182f"
+    },
+    {
+      "path": "popup/popup.html",
+      "bytes": 4354,
+      "sha256": "ab018e8a021a1e5d5db60ca16cc48177867f3232a3162e7d19e1d320874f122c"
+    },
+    {
+      "path": "popup/popup.js",
+      "bytes": 3740,
+      "sha256": "428f899427ec66ed34f66786604a9f190be8f88d87fd28cc4079d8003dc4eddc"
+    },
+    {
+      "path": "shared/capture-store.js",
+      "bytes": 2608,
+      "sha256": "ef7e2753d7cc317e8ee3a38b9a314cfbddc30e9776561b5b534421e4083de1fb"
+    },
+    {
+      "path": "shared/theme.css",
+      "bytes": 1317,
+      "sha256": "e7121b103a0858e5d22ff5df69eb2fae72df1f58230d102c6e27d969e6d0d441"
+    }
+  ],
+  "images": {
+    "screenshots/01-selection.png": {
+      "size": [
+        1280,
+        800
+      ],
+      "mode": "RGB"
+    },
+    "screenshots/02-element.png": {
+      "size": [
+        1280,
+        800
+      ],
+      "mode": "RGB"
+    },
+    "screenshots/03-editor.png": {
+      "size": [
+        1280,
+        800
+      ],
+      "mode": "RGB"
+    },
+    "screenshots/04-fullpage.png": {
+      "size": [
+        1280,
+        800
+      ],
+      "mode": "RGB"
+    },
+    "screenshots/05-popup.png": {
+      "size": [
+        1280,
+        800
+      ],
+      "mode": "RGB"
+    },
+    "promo/promo_small.png": {
+      "size": [
+        440,
+        280
+      ],
+      "mode": "RGB"
+    },
+    "promo/promo_marquee.png": {
+      "size": [
+        1400,
+        560
+      ],
+      "mode": "RGB"
+    },
+    "assets/store-icon-128.png": {
+      "size": [
+        128,
+        128
+      ],
+      "mode": "RGBA"
+    }
+  }
+}

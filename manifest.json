@@ -2,7 +2,7 @@
   "manifest_version": 3,
   "name": "WebSnaps",
   "version": "1.0.7",
-  "description": "スクリーンショットツール - 範囲選択・編集・保存機能付き",
+  "description": "Webページを範囲選択・要素選択・ページ全体で撮影。矢印やテキスト、ぼかしで編集し、PNG / JPG保存やクリップボードへのコピーができます。",
   "permissions": [
     "activeTab",
     "scripting",

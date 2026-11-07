@@ -1,0 +1,29 @@
+{
+  "checkedOn": "2026-11-07",
+  "results": [
+    {
+      "url": "https://sasakitz.github.io/websnaps/store/privacy-policy.html",
+      "status": 200,
+      "finalUrl": "https://sasakitz.github.io/websnaps/store/privacy-policy.html",
+      "mentionsIndexedDB": true,
+      "mentions20261107": true,
+      "matchesLocal": true,
+      "sha256": "4c8013874478c41d035e67d4362527cc3e546ebb6fceb482ed622e11d23fd066",
+      "commit": "4ce858bc6721dae9fae7d8ac09926afa04f0173e"
+    },
+    {
+      "url": "https://github.com/sasakitz/websnaps",
+      "status": 200,
+      "finalUrl": "https://github.com/sasakitz/websnaps",
+      "mentionsIndexedDB": false,
+      "mentions20261107": false
+    },
+    {
+      "url": "https://github.com/sasakitz/websnaps/issues",
+      "status": 200,
+      "finalUrl": "https://github.com/sasakitz/websnaps/issues",
+      "mentionsIndexedDB": false,
+      "mentions20261107": false
+    }
+  ]
+}

@@ -1,0 +1,26 @@
+<!doctype html>
+<html lang="ja">
+<meta charset="utf-8">
+<title>WebSnaps: スクロールでヘッダーと本文余白が縮むページ</title>
+<style>
+  * { box-sizing: border-box; }
+  body { margin: 0; font: 22px/1.7 system-ui, sans-serif; color: #123c3a; }
+  header { position: fixed; top: 0; left: 0; right: 0; height: 102px; padding: 16px 40px; background: #123c3a; color: #c5f47a; z-index: 1; }
+  main { padding-top: 102px; }
+  body.scrolled header { height: 82px; }
+  body.scrolled main { padding-top: 82px; }
+  section { height: 811px; padding: 48px; border-bottom: 1px solid #99b5a6; }
+  section:nth-child(even) { background: #e5f3eb; }
+  .sticky-note { position: sticky; top: 82px; padding: 12px; background: #c5f47a; }
+  footer { height: 243.5px; padding: 48px; background: #123c3a; color: white; }
+</style>
+<header>スクロールで20px縮むヘッダー</header>
+<main>
+  <section><h1>ヘッダー追従レイアウトの回帰テスト</h1><p>スクロールすると本文上部の余白も20px縮みます。</p><p>撮影がループせず、先頭からフッターまで結合され、ヘッダーと追従見出しが繰り返し写らないことを確認してください。</p></section>
+  <section>02</section><section>03</section><section>04<div class="sticky-note">この追従見出しは、この位置に一度だけ写ります。</div></section><section>05</section><section>06</section>
+</main>
+<footer>END / 撮影後に本文の余白とスクロール位置が元へ戻ることも確認してください。</footer>
+<script>
+  window.addEventListener('scroll', () => document.body.classList.toggle('scrolled', window.scrollY > 0));
+</script>
+</html>

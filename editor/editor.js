@@ -47,29 +47,24 @@ async function init() {
   cropOverlayCanvas = document.getElementById('crop-overlay');
   cropCtx = cropOverlayCanvas.getContext('2d');
 
-  // Load pending format/dest from popup settings
   try {
-    const local = await chrome.storage.local.get(['pendingFormat', 'pendingDest']);
-    if (local.pendingFormat) state.format = local.pendingFormat;
+    const captureId = new URLSearchParams(location.search).get('capture');
+    const captureData = captureId ? await CaptureStore.get(captureId) : null;
+    if (!captureData) throw new Error('キャプチャデータが見つかりません。拡張機能から撮影し直してください');
+    const tab = await chrome.tabs.getCurrent();
+    if (tab) await CaptureStore.attach(captureId, tab.id);
+    state.format = captureData.format === 'jpg' ? 'jpg' : 'png';
     document.querySelectorAll('.format-btn').forEach(btn => {
-      btn.classList.toggle('active', btn.dataset.format === state.format);
+      const active = btn.dataset.format === state.format;
+      btn.classList.toggle('active', active);
+      btn.setAttribute('aria-pressed', String(active));
     });
-  } catch (e) {}
-
-  try {
-    const data = await chrome.storage.session.get('captureData');
-    const captureData = data.captureData;
-
-    if (!captureData) {
-      showLoading(false);
-      showToast('キャプチャデータが見つかりません', 'error');
-      return;
-    }
-
     await loadCaptureData(captureData);
   } catch (e) {
     showLoading(false);
     showToast('読み込みエラー: ' + e.message, 'error');
+    document.querySelectorAll('button, input, select').forEach(control => { control.disabled = true; });
+    return;
   }
 
   setupEventListeners();
@@ -106,20 +101,18 @@ async function loadFromDataUrl(dataUrl) {
 async function loadSelection(captureData) {
   const { dataUrl, rect } = captureData;
   const img = await loadImage(dataUrl);
-  const dpr = rect.devicePixelRatio || 1;
-
-  const sx = Math.round(rect.x * dpr);
-  const sy = Math.round(rect.y * dpr);
-  const sw = Math.round(rect.width * dpr);
-  const sh = Math.round(rect.height * dpr);
-
-  canvas.width = sw;
-  canvas.height = sh;
-  ctx.drawImage(img, sx, sy, sw, sh, 0, 0, sw, sh);
+  const scaleX = rect.viewportWidth ? img.width / rect.viewportWidth : (rect.devicePixelRatio || 1);
+  const scaleY = rect.viewportHeight ? img.height / rect.viewportHeight : (rect.devicePixelRatio || 1);
+  const region = getBoundedRect(rect.x * scaleX, rect.y * scaleY,
+    (rect.x + rect.width) * scaleX, (rect.y + rect.height) * scaleY, img.width, img.height);
+  if (region.w < 1 || region.h < 1) throw new Error('選択範囲が画像の外にあります');
+  canvas.width = region.w;
+  canvas.height = region.h;
+  ctx.drawImage(img, region.x, region.y, region.w, region.h, 0, 0, region.w, region.h);
 }
 
 async function loadFullPage(captureData) {
-  const { screenshots, totalHeight, viewportWidth, viewportHeight, devicePixelRatio: dpr } = captureData;
+  const { screenshots, totalHeight, viewportWidth, devicePixelRatio: dpr } = captureData;
   const dprVal = dpr || 1;
 
   canvas.width = Math.round(viewportWidth * dprVal);
@@ -134,9 +127,15 @@ async function loadFullPage(captureData) {
     const nextScrollY = (i < screenshots.length - 1)
       ? screenshots[i + 1].scrollY
       : totalHeight;
-    const newHeight = Math.round((nextScrollY - shot.scrollY) * dprVal);
-
-    ctx.drawImage(img, 0, 0, img.width, newHeight, 0, destY, img.width, newHeight);
+    // Round shared boundaries once so fractional DPR does not leave seams.
+    const endY = Math.min(canvas.height, Math.round(nextScrollY * dprVal));
+    const newHeight = endY - destY;
+    if (newHeight > 0) {
+      // At fractional DPR the screenshot can be one pixel shorter than
+      // the rounded page interval. Fit that final pixel without leaving a gap.
+      const sourceHeight = Math.min(img.height, newHeight);
+      ctx.drawImage(img, 0, 0, img.width, sourceHeight, 0, destY, img.width, newHeight);
+    }
   }
 }
 
@@ -145,23 +144,48 @@ function saveHistory() {
   // Remove any redo history
   state.history = state.history.slice(0, state.historyIndex + 1);
   state.history.push(ctx.getImageData(0, 0, canvas.width, canvas.height));
-  if (state.history.length > 50) state.history.shift();
+  // Long captures can make a single snapshot hundreds of megabytes.
+  // Keep the current image and one undo step even when they exceed the budget.
+  let bytes = state.history.reduce((sum, image) => sum + image.width * image.height * 4, 0);
+  while (state.history.length > 50 || (state.history.length > 2 && bytes > 128 * 1024 * 1024)) {
+    const removed = state.history.shift();
+    bytes -= removed.width * removed.height * 4;
+  }
   state.historyIndex = state.history.length - 1;
   updateHistoryButtons();
 }
 
 function undo() {
+  commitTextInput();
   if (state.historyIndex <= 0) return;
   state.historyIndex--;
-  ctx.putImageData(state.history[state.historyIndex], 0, 0);
+  restoreHistory();
   updateHistoryButtons();
 }
 
 function redo() {
+  commitTextInput();
   if (state.historyIndex >= state.history.length - 1) return;
   state.historyIndex++;
-  ctx.putImageData(state.history[state.historyIndex], 0, 0);
+  restoreHistory();
   updateHistoryButtons();
+}
+
+function restoreHistory() {
+  if (state.tool === 'crop') selectTool('select');
+  const image = state.history[state.historyIndex];
+  canvas.width = image.width;
+  canvas.height = image.height;
+  ctx.putImageData(image, 0, 0);
+  setZoom(state.zoom);
+}
+
+function getBoundedRect(x1, y1, x2, y2, width = canvas.width, height = canvas.height) {
+  const left = Math.max(0, Math.min(width, Math.round(Math.min(x1, x2))));
+  const top = Math.max(0, Math.min(height, Math.round(Math.min(y1, y2))));
+  const right = Math.max(left, Math.min(width, Math.round(Math.max(x1, x2))));
+  const bottom = Math.max(top, Math.min(height, Math.round(Math.max(y1, y2))));
+  return { x: left, y: top, w: right - left, h: bottom - top };
 }
 
 function updateHistoryButtons() {
@@ -255,10 +279,7 @@ function drawEllipse(c, x1, y1, x2, y2) {
 }
 
 function applyBlur(x1, y1, x2, y2) {
-  const x = Math.round(Math.min(x1, x2));
-  const y = Math.round(Math.min(y1, y2));
-  const w = Math.round(Math.abs(x2 - x1));
-  const h = Math.round(Math.abs(y2 - y1));
+  const { x, y, w, h } = getBoundedRect(x1, y1, x2, y2);
   if (w < 2 || h < 2) return;
 
   const radius = state.effectStrength;
@@ -275,17 +296,18 @@ function applyBlur(x1, y1, x2, y2) {
   bCtx.filter = `blur(${radius}px)`;
   bCtx.drawImage(tmp, -radius, -radius, w + radius * 2, h + radius * 2);
 
+  ctx.save();
+  ctx.globalAlpha = 1;
+  ctx.clearRect(x, y, w, h);
   ctx.drawImage(blurred, x, y);
+  ctx.restore();
 }
 
 function applyMosaic(x1, y1, x2, y2) {
-  const x = Math.round(Math.min(x1, x2));
-  const y = Math.round(Math.min(y1, y2));
-  const w = Math.round(Math.abs(x2 - x1));
-  const h = Math.round(Math.abs(y2 - y1));
+  const { x, y, w, h } = getBoundedRect(x1, y1, x2, y2);
   if (w < 2 || h < 2) return;
 
-  const blockSize = state.effectStrength;
+  const blockSize = Math.max(1, Math.round(state.effectStrength));
   const imageData = ctx.getImageData(x, y, w, h);
   const { data, width: iw, height: ih } = imageData;
 
@@ -336,8 +358,7 @@ function onMouseDown(e) {
   }
 
   state.isDrawing = true;
-  state.preDrawSnapshot = ctx.getImageData(0, 0, canvas.width, canvas.height);
-  saveHistory();
+  state.preDrawSnapshot = state.history[state.historyIndex] || ctx.getImageData(0, 0, canvas.width, canvas.height);
 
   if (state.tool === 'pencil') {
     applyDrawStyle();
@@ -369,6 +390,7 @@ function onMouseMove(e) {
     ctx.beginPath();
     ctx.moveTo(x, y);
   } else if (state.tool === 'eraser') {
+    ctx.globalAlpha = 1;
     ctx.globalCompositeOperation = 'destination-out';
     ctx.lineWidth = state.eraserSize;
     ctx.lineCap = 'round';
@@ -400,9 +422,12 @@ function onMouseUp(e) {
     } else {
       applyMosaic(state.startX, state.startY, x, y);
     }
-    saveHistory();
+  } else if (['line', 'arrow', 'rect', 'ellipse'].includes(state.tool)) {
+    ctx.putImageData(state.preDrawSnapshot, 0, 0);
+    drawPreview(x, y);
   }
 
+  saveHistory();
   state.preDrawSnapshot = null;
 }
 
@@ -430,7 +455,7 @@ function drawPreview(x, y) {
       const h = Math.abs(y - state.startY);
       ctx.save();
       ctx.globalAlpha = 0.7;
-      ctx.strokeStyle = '#a5b4fc';
+      ctx.strokeStyle = '#146754';
       ctx.lineWidth = 1.5;
       ctx.setLineDash([6, 3]);
       ctx.strokeRect(x1, y1, w, h);
@@ -475,23 +500,7 @@ function startTextInput(x, y) {
   state.activeTextInput = { input, x, y };
 
   const commit = () => {
-    if (!state.activeTextInput) return;
-    const text = input.innerText.trim();
-    if (text) {
-      saveHistory();
-      ctx.globalAlpha = state.opacity;
-      ctx.fillStyle = state.color;
-      const fontStr = `${state.fontBold ? 'bold ' : ''}${state.fontItalic ? 'italic ' : ''}${state.fontSize}px ${state.fontFamily}`;
-      ctx.font = fontStr;
-      ctx.textBaseline = 'top';
-
-      const lines = text.split('\n');
-      lines.forEach((line, i) => {
-        ctx.fillText(line, x, y + i * (state.fontSize * 1.3));
-      });
-    }
-    input.remove();
-    state.activeTextInput = null;
+    if (state.activeTextInput?.input === input) commitTextInput();
   };
 
   input.addEventListener('keydown', (e) => {
@@ -518,7 +527,6 @@ function commitTextInput() {
   const { input, x, y } = state.activeTextInput;
   const text = input.innerText.trim();
   if (text) {
-    saveHistory();
     ctx.globalAlpha = state.opacity;
     ctx.fillStyle = state.color;
     const fontStr = `${state.fontBold ? 'bold ' : ''}${state.fontItalic ? 'italic ' : ''}${state.fontSize}px ${state.fontFamily}`;
@@ -528,6 +536,7 @@ function commitTextInput() {
     lines.forEach((line, i) => {
       ctx.fillText(line, x, y + i * (state.fontSize * 1.3));
     });
+    saveHistory();
   }
   input.remove();
   state.activeTextInput = null;
@@ -535,16 +544,18 @@ function commitTextInput() {
 
 // ─── Zoom ─────────────────────────────────────────────────────────────────────
 function setZoom(level) {
-  state.zoom = Math.max(0.1, Math.min(4, level));
+  commitTextInput();
+  state.zoom = Math.max(0.01, Math.min(4, level));
   const pct = Math.round(state.zoom * 100);
   document.getElementById('zoom-label').textContent = pct + '%';
-  canvasContainer.style.transform = `scale(${state.zoom})`;
+  canvas.style.width = `${canvas.width * state.zoom}px`;
+  canvas.style.height = `${canvas.height * state.zoom}px`;
   updateStatusBar();
 }
 
 function fitToWindow() {
   const ws = workspace.getBoundingClientRect();
-  const padding = 48;
+  const padding = parseFloat(getComputedStyle(workspace).paddingLeft) || 24;
   const scaleX = (ws.width - padding * 2) / canvas.width;
   const scaleY = (ws.height - padding * 2) / canvas.height;
   const zoom = Math.min(1, Math.min(scaleX, scaleY));
@@ -552,43 +563,53 @@ function fitToWindow() {
 }
 
 // ─── Export ───────────────────────────────────────────────────────────────────
+function getExportCanvas(format) {
+  if (format !== 'jpg') return canvas;
+  const output = document.createElement('canvas');
+  output.width = canvas.width;
+  output.height = canvas.height;
+  const outputCtx = output.getContext('2d');
+  outputCtx.fillStyle = '#ffffff';
+  outputCtx.fillRect(0, 0, output.width, output.height);
+  outputCtx.drawImage(canvas, 0, 0);
+  return output;
+}
+
 async function saveFile() {
-  const format = state.format;
-  const mimeType = format === 'jpg' ? 'image/jpeg' : 'image/png';
-  const ext = format === 'jpg' ? 'jpg' : 'png';
-  const quality = format === 'jpg' ? 0.92 : undefined;
-
-  const dataUrl = quality !== undefined
-    ? canvas.toDataURL(mimeType, quality)
-    : canvas.toDataURL(mimeType);
-
-  const now = new Date();
-  const ts = `${now.getFullYear()}${pad(now.getMonth()+1)}${pad(now.getDate())}_${pad(now.getHours())}${pad(now.getMinutes())}${pad(now.getSeconds())}`;
-  const filename = `websnaps_${ts}.${ext}`;
-
-  const a = document.createElement('a');
-  a.href = dataUrl;
-  a.download = filename;
-  a.click();
-  showToast(`保存しました: ${filename}`, 'success');
+  commitTextInput();
+  try {
+    const format = state.format;
+    const mimeType = format === 'jpg' ? 'image/jpeg' : 'image/png';
+    const output = getExportCanvas(format);
+    const blob = await new Promise(resolve => output.toBlob(resolve, mimeType, 0.92));
+    if (!blob) throw new Error('画像を生成できませんでした');
+    const now = new Date();
+    const ts = `${now.getFullYear()}${pad(now.getMonth()+1)}${pad(now.getDate())}_${pad(now.getHours())}${pad(now.getMinutes())}${pad(now.getSeconds())}`;
+    const filename = `websnaps_${ts}.${format === 'jpg' ? 'jpg' : 'png'}`;
+    const url = URL.createObjectURL(blob);
+    const link = document.createElement('a');
+    link.href = url;
+    link.download = filename;
+    link.click();
+    setTimeout(() => URL.revokeObjectURL(url), 60000);
+    showToast('ダウンロードを開始しました', 'success');
+  } catch (error) {
+    showToast('保存できませんでした: ' + error.message, 'error');
+  }
 }
 
 async function copyToClipboard() {
+  commitTextInput();
   try {
-    const blob = await new Promise(resolve => canvas.toBlob(resolve, 'image/png'));
-    await navigator.clipboard.write([
-      new ClipboardItem({ 'image/png': blob })
-    ]);
-    showToast('クリップボードにコピーしました', 'success');
-  } catch (e) {
-    // Fallback
-    const dataUrl = canvas.toDataURL('image/png');
-    try {
-      await navigator.clipboard.writeText(dataUrl);
-      showToast('クリップボードにコピーしました', 'success');
-    } catch (e2) {
-      showToast('コピーに失敗しました', 'error');
-    }
+    // Supply the promise immediately to preserve the browser's user activation.
+    const blob = new Promise((resolve, reject) => {
+      canvas.toBlob(value => value ? resolve(value) : reject(new Error('画像を生成できませんでした')), 'image/png');
+    });
+    void blob.catch(() => {});
+    await navigator.clipboard.write([new ClipboardItem({ 'image/png': blob })]);
+    showToast('画像をクリップボードにコピーしました', 'success');
+  } catch (error) {
+    showToast('画像をコピーできませんでした。ファイル保存をお試しください', 'error');
   }
 }
 
@@ -596,11 +617,7 @@ async function copyToClipboard() {
 function setupEventListeners() {
   canvas.addEventListener('mousedown', onMouseDown);
   canvas.addEventListener('mousemove', onMouseMove);
-  canvas.addEventListener('mouseup', onMouseUp);
-  canvas.addEventListener('mouseleave', () => {
-    if (state.isDrawing && state.tool !== 'pencil' && state.tool !== 'eraser') return;
-    // don't cancel on leave for shapes
-  });
+  document.addEventListener('mouseup', onMouseUp);
 
   document.getElementById('btn-undo').addEventListener('click', undo);
   document.getElementById('btn-redo').addEventListener('click', redo);
@@ -608,7 +625,6 @@ function setupEventListeners() {
   document.getElementById('btn-copy').addEventListener('click', copyToClipboard);
   document.getElementById('btn-crop-apply').addEventListener('click', applyCrop);
   document.getElementById('btn-crop-cancel').addEventListener('click', () => {
-    exitCropMode();
     selectTool('select');
   });
 
@@ -619,7 +635,11 @@ function setupEventListeners() {
   document.querySelectorAll('.format-btn').forEach(btn => {
     btn.addEventListener('click', () => {
       state.format = btn.dataset.format;
-      document.querySelectorAll('.format-btn').forEach(b => b.classList.toggle('active', b.dataset.format === state.format));
+      document.querySelectorAll('.format-btn').forEach(b => {
+        const active = b.dataset.format === state.format;
+        b.classList.toggle('active', active);
+        b.setAttribute('aria-pressed', String(active));
+      });
     });
   });
 
@@ -749,6 +769,12 @@ function setColor(color) {
 }
 
 function selectTool(tool) {
+  commitTextInput();
+  if (state.isDrawing) {
+    ctx.putImageData(state.preDrawSnapshot, 0, 0);
+    state.isDrawing = false;
+    state.preDrawSnapshot = null;
+  }
   // 他ツールへ切り替え時はクロップモードを終了
   if (state.tool === 'crop' && tool !== 'crop') {
     exitCropMode();
@@ -757,7 +783,9 @@ function selectTool(tool) {
   state.tool = tool;
 
   document.querySelectorAll('.tool-btn').forEach(btn => {
-    btn.classList.toggle('active', btn.dataset.tool === tool);
+    const active = btn.dataset.tool === tool;
+    btn.classList.toggle('active', active);
+    btn.setAttribute('aria-pressed', String(active));
   });
 
   if (tool === 'crop') {
@@ -768,60 +796,46 @@ function selectTool(tool) {
   updateCursor();
 
   document.getElementById('status-tool').textContent = getToolName(tool);
+  document.getElementById('tool-title').textContent = tool === 'select' ? '編集をはじめよう' : getToolName(tool);
+  document.getElementById('tool-description').textContent = TOOL_HINTS[tool] || '';
+  document.getElementById('editor-guide').hidden = tool !== 'select';
 }
 
+const TOOL_HINTS = {
+  select: '左のツールを選んで、画像に書き込めます。',
+  pencil: 'ドラッグして自由に書き込みます。色や太さを調整できます。',
+  line: '始点から終点へドラッグして、直線を引きます。',
+  arrow: '注目してほしい場所へ向かって、ドラッグします。',
+  rect: 'ドラッグして囲みます。塗りつぶしでハイライトにも。',
+  ellipse: 'ドラッグして丸く囲みます。塗りつぶしも使えます。',
+  text: '画像をクリックして文字を入力。外側をクリックすると確定します。',
+  blur: 'ドラッグした範囲をぼかします。下のスライダーで強度を調整。',
+  mosaic: '隠したい範囲をドラッグします。下のスライダーで粒の大きさを調整。',
+  eraser: 'ドラッグした部分が透明になります。元の画像も消去されます。',
+  crop: '残したい範囲をドラッグし、「切り抜きを適用」をクリック。'
+};
+
+const TOOL_PANELS = {
+  select: [],
+  pencil: ['color', 'width', 'opacity'],
+  line: ['color', 'width', 'opacity'],
+  arrow: ['color', 'width', 'opacity'],
+  rect: ['color', 'width', 'shape', 'opacity'],
+  ellipse: ['color', 'width', 'shape', 'opacity'],
+  text: ['color', 'text', 'opacity'],
+  blur: ['effect'],
+  mosaic: ['effect'],
+  eraser: ['eraser'],
+  crop: []
+};
+
 function updatePanelVisibility(tool) {
-  const colorSection = document.getElementById('opt-color');
-  const widthSection = document.getElementById('opt-width');
-  const textSection = document.getElementById('opt-text');
-  const effectSection = document.getElementById('opt-effect');
-  const shapeSection = document.getElementById('opt-shape');
-  const opacitySection = document.getElementById('opt-opacity');
-  const eraserSection = document.getElementById('opt-eraser');
-
-  const hideAll = () => {
-    [colorSection, widthSection, textSection, effectSection, shapeSection, opacitySection, eraserSection].forEach(el => el.classList.add('hidden'));
-    eraserSection.style.display = 'none';
-  };
-
-  hideAll();
-
-  switch (tool) {
-    case 'select':
-      break;
-    case 'pencil':
-      colorSection.classList.remove('hidden');
-      widthSection.classList.remove('hidden');
-      opacitySection.classList.remove('hidden');
-      break;
-    case 'line':
-    case 'arrow':
-      colorSection.classList.remove('hidden');
-      widthSection.classList.remove('hidden');
-      opacitySection.classList.remove('hidden');
-      break;
-    case 'rect':
-    case 'ellipse':
-      colorSection.classList.remove('hidden');
-      widthSection.classList.remove('hidden');
-      shapeSection.classList.remove('hidden');
-      opacitySection.classList.remove('hidden');
-      break;
-    case 'text':
-      colorSection.classList.remove('hidden');
-      textSection.classList.remove('hidden');
-      opacitySection.classList.remove('hidden');
-      break;
-    case 'blur':
-    case 'mosaic':
-      effectSection.classList.remove('hidden');
-      break;
-    case 'eraser':
-      eraserSection.style.display = '';
-      eraserSection.classList.remove('hidden');
-      break;
-    case 'crop':
-      break;
+  const visiblePanels = TOOL_PANELS[tool] || [];
+  for (const panel of ['color', 'width', 'text', 'effect', 'shape', 'opacity', 'eraser']) {
+    const section = document.getElementById(`opt-${panel}`);
+    const visible = visiblePanels.includes(panel);
+    section.classList.toggle('hidden', !visible);
+    if (panel === 'eraser') section.style.display = visible ? '' : 'none';
   }
 }
 
@@ -846,7 +860,7 @@ function updateCursor() {
 function setupKeyboardShortcuts() {
   document.addEventListener('keydown', (e) => {
     const tag = document.activeElement?.tagName.toLowerCase();
-    if (tag === 'input' || tag === 'textarea' || document.activeElement?.contentEditable === 'true') return;
+    if (tag === 'input' || tag === 'textarea' || tag === 'select' || document.activeElement?.contentEditable === 'true') return;
 
     if (e.ctrlKey || e.metaKey) {
       if (e.key === 'z') { e.preventDefault(); e.shiftKey ? redo() : undo(); }
@@ -858,6 +872,8 @@ function setupKeyboardShortcuts() {
       if (e.key === '0') { e.preventDefault(); fitToWindow(); }
       return;
     }
+
+    if (e.key === 'Escape' && state.tool === 'crop') { selectTool('select'); return; }
 
     const toolKeys = {
       'v': 'select', 'p': 'pencil', 'l': 'line',
@@ -899,7 +915,7 @@ function enterCropMode() {
 
   cropOverlayCanvas.addEventListener('mousedown', onCropMouseDown);
   cropOverlayCanvas.addEventListener('mousemove', onCropMouseMove);
-  cropOverlayCanvas.addEventListener('mouseup', onCropMouseUp);
+  document.addEventListener('mouseup', onCropMouseUp);
   cropOverlayCanvas.addEventListener('dblclick', applyCrop);
 }
 
@@ -909,7 +925,7 @@ function exitCropMode() {
 
   cropOverlayCanvas.removeEventListener('mousedown', onCropMouseDown);
   cropOverlayCanvas.removeEventListener('mousemove', onCropMouseMove);
-  cropOverlayCanvas.removeEventListener('mouseup', onCropMouseUp);
+  document.removeEventListener('mouseup', onCropMouseUp);
   cropOverlayCanvas.removeEventListener('dblclick', applyCrop);
 
   cropCtx.clearRect(0, 0, cropOverlayCanvas.width, cropOverlayCanvas.height);
@@ -957,24 +973,13 @@ function onCropMouseMove(e) {
 function onCropMouseUp(e) {
   if (!cropState.isDrawing) return;
   cropState.isDrawing = false;
-
-  if (cropState.w < 2 || cropState.h < 2) {
-    cropState.hasRegion = false;
-    document.getElementById('btn-crop-apply').disabled = true;
-    document.getElementById('crop-size-label').textContent = 'ドラッグして範囲を選択';
-    return;
-  }
-
-  // Clamp to canvas bounds
-  cropState.x = Math.max(0, cropState.x);
-  cropState.y = Math.max(0, cropState.y);
-  cropState.w = Math.min(canvas.width - cropState.x, cropState.w);
-  cropState.h = Math.min(canvas.height - cropState.y, cropState.h);
-
-  cropState.hasRegion = true;
-  document.getElementById('btn-crop-apply').disabled = false;
-  document.getElementById('crop-size-label').textContent =
-    `${cropState.w} × ${cropState.h} (ダブルクリックで適用)`;
+  const { x, y } = getCropCoords(e);
+  Object.assign(cropState, getBoundedRect(cropState.startX, cropState.startY, x, y));
+  cropState.hasRegion = cropState.w >= 2 && cropState.h >= 2;
+  document.getElementById('btn-crop-apply').disabled = !cropState.hasRegion;
+  document.getElementById('crop-size-label').textContent = cropState.hasRegion
+    ? `${cropState.w} × ${cropState.h} (ダブルクリックで適用)`
+    : 'ドラッグして範囲を選択';
   drawCropOverlay();
 }
 
@@ -1046,20 +1051,10 @@ function applyCrop() {
   canvas.height = h;
   ctx.putImageData(imageData, 0, 0);
 
-  // Reset history to new canvas state
-  state.history = [];
-  state.historyIndex = -1;
   saveHistory();
 
-  exitCropMode();
-  state.tool = 'select';
-  document.querySelectorAll('.tool-btn').forEach(btn => {
-    btn.classList.toggle('active', btn.dataset.tool === 'select');
-  });
-  updatePanelVisibility('select');
-  updateCursor();
-  document.getElementById('status-tool').textContent = getToolName('select');
-  updateStatusBar();
+  selectTool('select');
+  setZoom(state.zoom);
   showToast(`切り抜き完了: ${w} × ${h}`, 'success');
 }
 
@@ -1068,7 +1063,7 @@ function loadImage(src) {
   return new Promise((resolve, reject) => {
     const img = new Image();
     img.onload = () => resolve(img);
-    img.onerror = reject;
+    img.onerror = () => reject(new Error('画像データを読み込めませんでした'));
     img.src = src;
   });
 }

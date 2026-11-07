@@ -1,0 +1,35 @@
+{
+  "browser": "Chrome/157.0.8103.38",
+  "fixture": "store/screenshots/demo-page.html",
+  "captureMethod": "Actual unpacked extension; CDP invokes worker startCapture using existing host permission. Toolbar/keyboard user gestures are separate manual checks.",
+  "fullpage": {
+    "width": 1280,
+    "height": 1802
+  },
+  "exportEncoding": {
+    "png": "data:image/png;base64,",
+    "jpg": "data:image/jpeg;base64,"
+  },
+  "actualDownloads": {
+    "png": {
+      "format": "PNG",
+      "size": [
+        1280,
+        800
+      ]
+    },
+    "jpg": {
+      "format": "JPEG",
+      "size": [
+        1280,
+        800
+      ]
+    }
+  },
+  "selectionCapture": {
+    "width": 1112,
+    "height": 461
+  },
+  "storageTest": "{\"passed\":[\"unique IDs under concurrent saves\",\"12 MiB capture roundtrip\",\"isolated second capture\",\"closed tab data removed\",\"other editor preserved\",\"live capture survives cleanup\",\"orphan capture removed\",\"failed transaction rejects\"],\"errors\":[]}",
+  "screenshots": 5
+}

@@ -27,13 +27,13 @@
   display: flex !important;
   align-items: center !important;
   gap: 8px !important;
-  background: rgba(12, 12, 12, 0.96) !important;
+  background: rgba(255, 255, 255, 0.98) !important;
   backdrop-filter: blur(16px) !important;
   -webkit-backdrop-filter: blur(16px) !important;
-  border: 1px solid rgba(255, 255, 255, 0.08) !important;
+  border: 1px solid #e3e9e6 !important;
   border-radius: 12px !important;
   padding: 8px 16px !important;
-  box-shadow: 0 8px 32px rgba(0, 0, 0, 0.6), 0 0 0 1px rgba(99, 102, 241, 0.2) !important;
+  box-shadow: 0 8px 32px rgba(18, 60, 58, 0.18), 0 0 0 1px rgba(20, 103, 84, 0.12) !important;
   pointer-events: all !important;
   white-space: nowrap !important;
 }
@@ -41,14 +41,14 @@
 #__websnaps-overlay .__ws-logo {
   font-size: 13px !important;
   font-weight: 700 !important;
-  color: #a5b4fc !important;
+  color: #146754 !important;
   letter-spacing: 0.5px !important;
 }
 
 #__websnaps-overlay .__ws-divider {
   width: 1px !important;
   height: 20px !important;
-  background: rgba(255, 255, 255, 0.1) !important;
+  background: #d8e3dc !important;
   flex-shrink: 0 !important;
 }
 
@@ -60,7 +60,7 @@
   border: 1px solid transparent !important;
   border-radius: 7px !important;
   background: transparent !important;
-  color: rgba(255, 255, 255, 0.5) !important;
+  color: #52685e !important;
   font-size: 12px !important;
   cursor: pointer !important;
   transition: all 0.15s !important;
@@ -68,14 +68,14 @@
 }
 
 #__websnaps-overlay .__ws-mode-btn:hover {
-  background: rgba(255, 255, 255, 0.08) !important;
-  color: rgba(255, 255, 255, 0.9) !important;
+  background: #e3e9e6 !important;
+  color: #1b302a !important;
 }
 
 #__websnaps-overlay .__ws-mode-btn.__ws-active {
-  background: rgba(99, 102, 241, 0.25) !important;
-  border-color: rgba(99, 102, 241, 0.5) !important;
-  color: #a5b4fc !important;
+  background: #e5f3eb !important;
+  border-color: #a6cdb8 !important;
+  color: #146754 !important;
 }
 
 #__websnaps-overlay .__ws-cancel-btn {
@@ -83,10 +83,10 @@
   align-items: center !important;
   gap: 5px !important;
   padding: 5px 10px !important;
-  border: 1px solid rgba(239, 68, 68, 0.3) !important;
+  border: 1px solid #d8e3dc !important;
   border-radius: 7px !important;
-  background: rgba(239, 68, 68, 0.1) !important;
-  color: #fca5a5 !important;
+  background: #f3f6f5 !important;
+  color: #52685e !important;
   font-size: 12px !important;
   cursor: pointer !important;
   transition: all 0.15s !important;
@@ -94,13 +94,13 @@
 }
 
 #__websnaps-overlay .__ws-cancel-btn:hover {
-  background: rgba(239, 68, 68, 0.2) !important;
-  border-color: rgba(239, 68, 68, 0.5) !important;
+  background: #fce8e6 !important;
+  border-color: #e7b0aa !important;
 }
 
 #__websnaps-overlay .__ws-hint {
   font-size: 12px !important;
-  color: rgba(255, 255, 255, 0.4) !important;
+  color: #52685e !important;
   transition: color 0.15s !important;
 }
 
@@ -109,22 +109,22 @@
 #__websnaps-overlay .__ws-selection {
   position: fixed !important;
   display: none !important;
-  border: 2px solid #6366f1 !important;
+  border: 2px solid #146754 !important;
   box-shadow:
-    0 0 0 1px rgba(99, 102, 241, 0.4),
-    inset 0 0 0 1px rgba(255, 255, 255, 0.1) !important;
+    0 0 0 1px rgba(20, 103, 84, 0.4),
+    inset 0 0 0 1px #d8e3dc !important;
   pointer-events: none !important;
-  background: rgba(99, 102, 241, 0.06) !important;
+  background: rgba(20, 103, 84, 0.03) !important;
 }
 
 /* 要素モードのハイライト色 */
 #__websnaps-overlay.__ws-element-mode .__ws-selection {
-  border-color: #22d3ee !important;
+  border-color: #146754 !important;
   box-shadow:
-    0 0 0 1px rgba(34, 211, 238, 0.4),
-    0 0 16px 2px rgba(34, 211, 238, 0.2),
-    inset 0 0 0 1px rgba(255, 255, 255, 0.1) !important;
-  background: rgba(34, 211, 238, 0.05) !important;
+    0 0 0 1px rgba(20, 103, 84, 0.4),
+    0 0 16px 2px rgba(20, 103, 84, 0.12),
+    inset 0 0 0 1px #d8e3dc !important;
+  background: rgba(20, 103, 84, 0.03) !important;
 }
 
 /* 確定待ち状態：pointer-events を有効化 */
@@ -139,7 +139,7 @@
   width: 9px !important;
   height: 9px !important;
   background: #fff !important;
-  border: 2px solid #6366f1 !important;
+  border: 2px solid #146754 !important;
   border-radius: 2px !important;
   box-shadow: 0 1px 4px rgba(0,0,0,0.4) !important;
   z-index: 3 !important;
@@ -181,16 +181,16 @@
 
 #__websnaps-overlay .__ws-confirm-panel {
   position: fixed !important;
-  display: none !important;
+  display: none;
   align-items: center !important;
   gap: 10px !important;
-  background: rgba(12, 12, 12, 0.97) !important;
+  background: rgba(255, 255, 255, 0.98) !important;
   backdrop-filter: blur(16px) !important;
   -webkit-backdrop-filter: blur(16px) !important;
-  border: 1px solid rgba(255, 255, 255, 0.1) !important;
+  border: 1px solid #d8e3dc !important;
   border-radius: 12px !important;
   padding: 10px 14px !important;
-  box-shadow: 0 8px 32px rgba(0, 0, 0, 0.6) !important;
+  box-shadow: 0 8px 32px rgba(18, 60, 58, 0.18) !important;
   pointer-events: all !important;
   z-index: 2147483647 !important;
   white-space: nowrap !important;
@@ -211,17 +211,17 @@
 #__websnaps-overlay .__ws-size-label {
   font-size: 11px !important;
   font-weight: 600 !important;
-  color: rgba(255, 255, 255, 0.4) !important;
+  color: #52685e !important;
   font-family: inherit !important;
 }
 
 #__websnaps-overlay .__ws-size-input {
   width: 62px !important;
   padding: 4px 8px !important;
-  background: rgba(255, 255, 255, 0.07) !important;
-  border: 1px solid rgba(255, 255, 255, 0.12) !important;
+  background: #f3f6f5 !important;
+  border: 1px solid #cdd9d3 !important;
   border-radius: 6px !important;
-  color: #f0f0f0 !important;
+  color: #1b302a !important;
   font-size: 12px !important;
   font-family: 'SF Mono', 'Fira Code', monospace !important;
   font-weight: 500 !important;
@@ -238,19 +238,19 @@
 }
 
 #__websnaps-overlay .__ws-size-input:focus {
-  border-color: rgba(99, 102, 241, 0.6) !important;
-  background: rgba(99, 102, 241, 0.1) !important;
+  border-color: #146754 !important;
+  background: #e5f3eb !important;
 }
 
 #__websnaps-overlay .__ws-size-sep {
   font-size: 13px !important;
-  color: rgba(255, 255, 255, 0.3) !important;
+  color: #687c72 !important;
   font-family: inherit !important;
 }
 
 #__websnaps-overlay .__ws-size-unit {
   font-size: 11px !important;
-  color: rgba(255, 255, 255, 0.3) !important;
+  color: #687c72 !important;
   font-family: inherit !important;
 }
 
@@ -259,7 +259,7 @@
   align-items: center !important;
   gap: 6px !important;
   padding: 6px 14px !important;
-  background: #6366f1 !important;
+  background: #146754 !important;
   border: none !important;
   border-radius: 8px !important;
   color: #fff !important;
@@ -272,7 +272,7 @@
 }
 
 #__websnaps-overlay .__ws-capture-btn:hover {
-  background: #4f52d9 !important;
+  background: #0e5142 !important;
 }
 
 #__websnaps-overlay .__ws-capture-btn:active {
@@ -283,8 +283,8 @@
 
 #__websnaps-overlay .__ws-dim-label {
   position: fixed !important;
-  display: none !important;
-  background: #6366f1 !important;
+  display: none;
+  background: #146754 !important;
   color: #fff !important;
   padding: 3px 8px !important;
   border-radius: 6px !important;
@@ -293,18 +293,18 @@
   font-weight: 600 !important;
   pointer-events: none !important;
   white-space: nowrap !important;
-  box-shadow: 0 2px 8px rgba(99, 102, 241, 0.4) !important;
+  box-shadow: 0 2px 8px rgba(20, 103, 84, 0.4) !important;
 }
 
 #__websnaps-overlay.__ws-element-mode .__ws-dim-label {
-  background: #22d3ee !important;
-  color: #0c1a1f !important;
-  box-shadow: 0 2px 8px rgba(34, 211, 238, 0.4) !important;
+  background: #146754 !important;
+  color: #ffffff !important;
+  box-shadow: 0 2px 8px rgba(20, 103, 84, 0.4) !important;
 }
 
 #__websnaps-overlay .__ws-ruler {
   position: fixed !important;
-  background: rgba(99, 102, 241, 0.4) !important;
+  background: rgba(20, 103, 84, 0.4) !important;
   pointer-events: none !important;
 }
 
@@ -316,4 +316,33 @@
 #__websnaps-overlay .__ws-ruler-v {
   top: 0 !important; bottom: 0 !important;
   width: 1px !important; left: 0 !important;
+}
+
+/* Keep controls readable even when the host page styles buttons and inputs. */
+#__websnaps-overlay *, #__websnaps-overlay *::before, #__websnaps-overlay *::after {
+  box-sizing: border-box !important;
+  line-height: 1.5 !important;
+  letter-spacing: normal !important;
+  text-transform: none !important;
+}
+#__websnaps-overlay button { min-height: 36px !important; margin: 0 !important; }
+#__websnaps-overlay button:focus-visible, #__websnaps-overlay input:focus-visible {
+  outline: 3px solid #146754 !important;
+  outline-offset: 3px !important;
+}
+#__websnaps-overlay .__ws-logo { display: flex !important; align-items: center !important; gap: 8px !important; color: #1b302a !important; }
+#__websnaps-overlay .__ws-logo svg { width: 28px !important; height: 28px !important; }
+#__websnaps-overlay .__ws-toolbar { max-width: calc(100vw - 24px) !important; padding: 8px 12px !important; gap: 8px !important; }
+#__websnaps-overlay .__ws-confirm-panel { max-width: calc(100vw - 16px) !important; gap: 12px !important; }
+#__websnaps-overlay .__ws-size-input { min-height: 34px !important; }
+#__websnaps-overlay .__ws-capture-btn { min-height: 36px !important; }
+@media (max-width: 680px) {
+  #__websnaps-overlay .__ws-hint, #__websnaps-overlay .__ws-divider { display: none !important; }
+  #__websnaps-overlay .__ws-toolbar { gap: 5px !important; padding: 7px !important; }
+  #__websnaps-overlay .__ws-logo { font-size: 0 !important; gap: 0 !important; }
+  #__websnaps-overlay .__ws-mode-btn, #__websnaps-overlay .__ws-cancel-btn { padding: 5px 8px !important; }
+  #__websnaps-overlay .__ws-confirm-panel { flex-wrap: wrap !important; justify-content: center !important; padding: 8px !important; }
+}
+@media (prefers-reduced-motion: reduce) {
+  #__websnaps-overlay * { transition: none !important; }
 }

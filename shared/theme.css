@@ -1,0 +1,38 @@
+/* Shared visual language for extension pages. No remote fonts or assets. */
+:root {
+  color-scheme: light;
+  --bg: #eef2f1;
+  --surface: #ffffff;
+  --surface-2: #f3f6f5;
+  --surface-3: #e3eae7;
+  --border: #e3e9e6;
+  --border-2: #cdd9d3;
+  --border-hover: #a4b8ae;
+  --accent: #146754;
+  --accent-light: #146754;
+  --accent-bg: #e5f3eb;
+  --accent-border: #a6cdb8;
+  --lime: #c5f47a;
+  --text: #1b302a;
+  --text-2: #52685e;
+  --text-3: #687c72;
+  --danger: #b53636;
+  --success: #146754;
+  --radius: 10px;
+  font-family: 'Inter', 'Noto Sans JP', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+}
+button, input, select { font: inherit; }
+button, a, input, select { -webkit-tap-highlight-color: transparent; }
+button { touch-action: manipulation; }
+button:focus-visible, a:focus-visible, input:focus-visible, select:focus-visible,
+[tabindex]:focus-visible {
+  outline: 3px solid var(--accent);
+  outline-offset: 3px;
+}
+button:disabled { cursor: default; }
+svg { flex-shrink: 0; stroke-linecap: round; stroke-linejoin: round; }
+.brand-icon { width: 34px; height: 34px; flex-shrink: 0; }
+kbd { font-family: ui-monospace, 'SF Mono', monospace; }
+@media (prefers-reduced-motion: reduce) {
+  *, *::before, *::after { animation: none !important; transition: none !important; scroll-behavior: auto !important; }
+}
