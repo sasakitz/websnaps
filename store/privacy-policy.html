@@ -109,102 +109,56 @@
   </header>
 
   <div class="highlight">
-    <p>📌 WebSnaps はユーザーの個人情報を一切収集せず、すべての処理をお使いのブラウザ内のみで完結します。スクリーンショットデータが外部サーバーに送信されることはありません。</p>
+    <p>WebSnaps は、ユーザーが指示したWebページの撮影・編集・保存を端末内で行います。画像には個人情報が写ることがありますが、拡張機能が画像や閲覧情報を開発者・外部サーバーへ送信することはありません。</p>
   </div>
 
-  <h2>収集する情報</h2>
-  <p>WebSnaps は以下の情報のみをブラウザのローカルストレージに保存します。</p>
-  <div class="table-wrap">
-    <table>
-      <thead>
-        <tr><th>保存データ</th><th>用途</th><th>保存場所</th><th>外部送信</th></tr>
-      </thead>
-      <tbody>
-        <tr>
-          <td>保存形式の設定<br>（PNG / JPG）</td>
-          <td>次回起動時に設定を引き継ぐ</td>
-          <td>chrome.storage.local<br>（端末内のみ）</td>
-          <td>なし</td>
-        </tr>
-        <tr>
-          <td>保存先の設定<br>（ファイル / クリップボード）</td>
-          <td>次回起動時に設定を引き継ぐ</td>
-          <td>chrome.storage.local<br>（端末内のみ）</td>
-          <td>なし</td>
-        </tr>
-        <tr>
-          <td>キャプチャデータ（一時）</td>
-          <td>ポップアップ → エディタ間のデータ受け渡し</td>
-          <td>chrome.storage.session<br>（セッション中のみ）</td>
-          <td>なし</td>
-        </tr>
-      </tbody>
-    </table>
-  </div>
+  <h2>対象と提供者</h2>
+  <p>本ポリシーは、sasakitz が提供する Chrome 拡張機能 WebSnaps に適用されます。お問い合わせ先は <a href="https://github.com/sasakitz/websnaps/issues">GitHub Issues</a> です。</p>
 
-  <h2>収集しない情報</h2>
+  <h2>取り扱う情報と利用目的</h2>
+  <div class="table-wrap"><table>
+    <thead><tr><th>情報</th><th>用途・保存場所</th><th>外部送信</th></tr></thead>
+    <tbody>
+      <tr><td>撮影画像・選択範囲・ページ寸法・スクロール位置</td><td>ユーザーが開始した撮影、画像の結合・切り抜き・編集に使用。元の撮影画像と撮影用メタデータは拡張機能のIndexedDBに一時保存。編集中の画像と編集履歴はメモリ内で処理。</td><td>なし</td></tr>
+      <tr><td>ページ上の要素の位置・大きさ・表示スタイル、選択時のマウス・キー操作</td><td>要素選択、範囲調整、ページ全体の撮影・撮影後の表示復元に使用。メモリ内のみ。</td><td>なし</td></tr>
+      <tr><td>タブのID、URL等のタブ情報</td><td>撮影対象・制限ページの判定と、開いている編集タブの特定・一時画像の削除に使用。起動時の編集タブ検出では開いているタブのURLを参照。閲覧履歴のデータベースは作成せず、URLを設定や画像データに保存しません。エラー時には対象URLが端末内の開発者コンソールに表示される場合があります。</td><td>なし</td></tr>
+      <tr><td>保存形式の設定（PNG / JPG）、撮影開始時の形式設定</td><td>chrome.storage.localのformat / pendingFormatに保存。次回起動時の形式の引き継ぎなどに使用。</td><td>なし</td></tr>
+    </tbody>
+  </table></div>
+  <p>撮影対象の画面には、氏名・メール、個人的な通信、認証情報、健康情報、支払い情報などが含まれる可能性があります。これらも画像の一部として端末内で処理されます。種類別の抽出、利用者のプロファイリング、広告利用は行いません。共有前に画像の内容をご確認ください。</p>
+
+  <h2>要求する権限</h2>
   <ul>
-    <li>閲覧履歴・訪問URL</li>
-    <li>スクリーンショットの内容・画像データ</li>
-    <li>氏名・メールアドレス等の個人を特定できる情報</li>
-    <li>クッキー・トラッキング情報</li>
-    <li>クラッシュレポート・使用統計</li>
+    <li><strong>activeTab:</strong> ポップアップ起動やショートカットなど、ユーザーの操作を起点にアクティブなタブを撮影・操作するため。</li>
+    <li><strong>scripting:</strong> 選択UIの挿入、要素の位置・サイズ取得、自動スクロールと撮影中の表示調整・復元のため。</li>
+    <li><strong>clipboardWrite:</strong> 「コピー」を押した画像をクリップボードへ書き込むため。</li>
+    <li><strong>storage:</strong> 保存形式の設定を端末内に保持するため。</li>
+    <li><strong>tabs:</strong> 撮影対象URLや開いている編集タブのURLを確認し、一時データを適切に削除するため。</li>
+    <li><strong>&lt;all_urls&gt;:</strong> ユーザーが撮影を指示したページに選択UIや撮影用スクリプトを挿入し、表示範囲を撮影するため。常駐コンテンツスクリプトによる自動収集は行いません。ブラウザが制限するページには利用できません。</li>
   </ul>
 
-  <h2>使用する権限とその理由</h2>
-  <div class="table-wrap">
-    <table>
-      <thead>
-        <tr><th>権限</th><th>使用目的</th></tr>
-      </thead>
-      <tbody>
-        <tr>
-          <td><span class="badge">activeTab</span></td>
-          <td>ショートカットキー起動時に現在アクティブなタブのスクリーンショットを撮影するため</td>
-        </tr>
-        <tr>
-          <td><span class="badge">scripting</span></td>
-          <td>範囲選択オーバーレイ（コンテンツスクリプト）をWebページに注入するため</td>
-        </tr>
-        <tr>
-          <td><span class="badge">downloads</span></td>
-          <td>キャプチャ画像をPNG/JPGファイルとしてダウンロードフォルダに保存するため</td>
-        </tr>
-        <tr>
-          <td><span class="badge">clipboardWrite</span></td>
-          <td>キャプチャ画像をクリップボードにコピーするため</td>
-        </tr>
-        <tr>
-          <td><span class="badge">storage</span></td>
-          <td>ユーザーの設定（フォーマット・保存先）をローカルに保存するため</td>
-        </tr>
-        <tr>
-          <td><span class="badge">tabs</span></td>
-          <td>キャプチャ対象のタブ情報の取得、エディタタブの作成のため</td>
-        </tr>
-        <tr>
-          <td><span class="badge">&lt;all_urls&gt;</span></td>
-          <td>ユーザーが任意のWebページで範囲選択オーバーレイを使用できるようにするため。閲覧データの読み取りは行いません。</td>
-        </tr>
-      </tbody>
-    </table>
+  <h2>第三者への提供とデータ利用</h2>
+  <p>拡張機能から開発者または第三者へのデータ送信・販売・共有は行いません。広告、アクセス解析、追跡用SDK、遠隔コード、ログイン機能は含まれません。ユーザーデータを撮影・編集・保存という目的以外に利用せず、信用力の判定や融資目的にも利用しません。</p>
+  <p>ユーザーが「画像を保存」「コピー」を選ぶと、画像がダウンロード先またはOSのクリップボードに出力されます。その後の貼り付け・共有先はユーザーが選択します。GitHub等のサポートサイトを利用する場合、そのサイトのポリシーが別途適用されます。</p>
+
+  <h2>保存期間と削除</h2>
+  <p>元の撮影画像は編集中の再読み込みにも使います。編集タブを閉じると対応する一時画像を削除します。異常終了などで残った不要な画像は、次回サービスワーカー起動時に開いている編集タブと照合して削除します。編集履歴はタブを閉じると失われ、再読み込みでは元の撮影画像が表示されます。</p>
+  <p>保存形式は変更または拡張機能のアンインストールまで端末内に保持します。アンインストールすると拡張機能内の設定と一時画像は削除されます。ダウンロード済みの画像やOSのクリップボード・クリップボード履歴は対象外です。これらは端末の機能で別途削除してください。</p>
+
+  <h2>安全な利用とお問い合わせ</h2>
+  <p>端末内のデータ保護は、ChromeとOSのアクセス制御を利用します。機密情報を含む画面の撮影・共有にはご注意ください。ぼかし・モザイクは画像加工機能であり、共有前の内容確認が必要です。</p>
+  <p>お問い合わせは <a href="https://github.com/sasakitz/websnaps/issues">GitHub Issues</a> へお寄せください。公開の場には、個人情報や機密画像を投稿しないでください。本ポリシーを改定する場合はこのページの更新日を変更します。</p>
+
+  <h2 lang="en">English summary</h2>
+  <div lang="en">
+    <p>WebSnaps, provided by sasakitz, captures and edits web pages locally when you request it. It handles screenshots, selection geometry, page layout, selection input and tab information (including URLs). Screenshots may contain personal or sensitive information. These data are used only to provide capture, editing and export, and are not transmitted to the developer or third parties, sold, used for advertising, unrelated purposes, creditworthiness or lending.</p>
+    <p>Original captures and capture metadata are temporarily stored in the extension's IndexedDB for handoff and editor reload. They are deleted when the editor tab closes; orphaned records are removed on the next service-worker startup. In-memory edits are lost on reload. PNG/JPG preferences are stored in chrome.storage.local until changed or uninstalled. Tab URLs are read to identify capture targets and live editor tabs; they are not stored in a browsing-history database. Local error logs may show a target URL.</p>
+    <p>Saving or copying exports an image to your downloads or OS clipboard at your request. Uninstalling removes extension data, but not exported files or clipboard history. The extension has no analytics, ads, remote code or sign-in. Chrome and OS access controls protect local data. Contact: <a href="https://github.com/sasakitz/websnaps/issues">GitHub Issues</a>. Do not post sensitive data in public issues. This page is updated when the policy changes.</p>
   </div>
 
-  <h2>第三者への情報提供</h2>
-  <p>WebSnaps は、いかなる第三者に対しても情報を提供・販売・共有しません。本拡張機能には広告・アナリティクス・トラッキングの機能は一切含まれていません。</p>
-
-  <h2>データの保管と削除</h2>
-  <p>ローカルに保存されるのは設定値（保存形式・保存先）のみです。拡張機能をアンインストールすることで、これらのデータはすべて自動的に削除されます。</p>
-
-  <h2>お問い合わせ</h2>
-  <p>本ポリシーに関するご質問は、<a href="https://github.com/sasakitz/websnaps/issues" target="_blank">GitHub Issues</a> よりお問い合わせください。</p>
-
-  <h2>ポリシーの改定</h2>
-  <p>本ポリシーを変更する場合は、このページを更新します。重要な変更がある場合は <a href="https://github.com/sasakitz/websnaps/releases" target="_blank">リリースノート</a> にも記載します。</p>
-
   <footer>
-    <p>最終更新: 2026年4月4日 &nbsp;|&nbsp; WebSnaps &nbsp;|&nbsp;
-    <a href="https://github.com/sasakitz/websnaps" target="_blank">GitHub</a></p>
+    <p>最終更新: 2026年11月7日 &nbsp;|&nbsp; WebSnaps &nbsp;|&nbsp;
+    <a href="https://github.com/sasakitz/websnaps" target="_blank" rel="noopener noreferrer">GitHub</a></p>
   </footer>
 
 </div>
